@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EnviroAlerts Home</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        background-color: #f9f9f9;
+      }
+
+      /* Navigation Bar */
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f4f4f4;
+        padding: 10px 20px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        padding: 5px 10px;
+      }
+
+      nav a:hover {
+        background-color: #ddd;
+        border-radius: 3px;
+      }
+
+      /* Main Content */
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+
+      .section {
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin: 20px 0;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .section h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .section p {
+        font-size: 18px;
+        color: #666;
+      }
+
+      .map-section {
+        height: 400px;
+        border-radius: 5px;
+        overflow: hidden; /* Ensures no unwanted overflow from map tiles */
+        padding: 0; /* Removes padding around the map */
+        margin: 0; /* Ensures map section fits neatly */
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        border: none; /* Removes border */
+        border-radius: 5px; /* Keeps the rounded corners */
+      }
+
+      .header-title {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin: 20px 0;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav>
+      <a href="/alerts/home/">EnviroAlerts</a>
+      <a href="/alerts/map/">Alerts Map</a>
+      <a href="/alerts/resources/">IOT Resources</a>
+      <a href="/alerts/about/">About</a>
+      <a href="/alerts/login/">Login</a>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Header -->
+      <div class="header-title">EnviroAlerts</div>
+
+      <!-- Map Section -->
+      <div class="section map-section">
+        <h2>SLOGAN ON TOP OF THE MAP</h2>
+        <div id="map"></div>
+      </div>
+
+      <!-- Top 5 Most Dangerous Alerts -->
+      <div class="section">
+        <h2>Top 5 most dangerous alerts in the world</h2>
+        <p>Placeholder content for demo purposes.</p>
+      </div>
+
+      <!-- Concept Description -->
+      <div class="section">
+        <h2>Concept description</h2>
+        <p>
+          Explanation of the services offered and the vision of EnviroAlerts.
+        </p>
+      </div>
+
+      <!-- Most Popular IOT Resources -->
+      <div class="section">
+        <h2>Most popular IOT resources</h2>
+        <p>Placeholder content for IOT resources section.</p>
+      </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      // Initialize the map
+      var map = L.map("map").setView([51.505, -0.09], 2); // Initial view with a world zoom
+
+      // Add OpenStreetMap tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          "Map data &copy; <a href='https://openstreetmap.org'>OpenStreetMap</a> contributors",
+      }).addTo(map);
+
+      // Fetch existing alerts dynamically
+      fetch("/alerts/alerts/") // Assuming an endpoint exists
+        .then((response) => response.json())
+        .then((data) => {
+          data.features.forEach((feature) => {
+            const coords = feature.geometry.coordinates; // GeoJSON uses [lng, lat]
+            const { title, description, hazard_type } = feature.properties;
+
+            // Add marker to the map
+            L.marker([coords[1], coords[0]]) // Leaflet expects [lat, lng]
+              .addTo(map).bindPopup(`
+                <b>${title}</b><br>
+                ${description}<br>
+                <i>${hazard_type || "Unknown Hazard"}</i>
+              `);
+          });
+        })
+        .catch((error) => console.error("Error loading alerts:", error));
+    </script>
+  </body>
+</html>
