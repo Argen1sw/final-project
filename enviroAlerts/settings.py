@@ -28,6 +28,10 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+# Changes the model that will be used for Auth
+AUTH_USER_MODEL = 'users.User'
+
+
 # Application definition
 
 INSTALLED_APPS = [
