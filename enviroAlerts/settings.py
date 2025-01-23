@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home' 
+LOGOUT_REDIRECT_URL = 'login'
 
 # Changes the model that will be used for Auth
 AUTH_USER_MODEL = 'users.User'
@@ -35,6 +38,8 @@ AUTH_USER_MODEL = 'users.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'users',
+    'alerts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,7 +50,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'leaflet',
-    'alerts',
 ]
 
 MIDDLEWARE = [

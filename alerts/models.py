@@ -1,3 +1,4 @@
+
 from django.contrib.gis.db import models
 
 # New modules
@@ -5,14 +6,22 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
 from datetime import timedelta
-from django.contrib.auth.models import User
+from users.models import User
 
+
+class HazardType(models.TextChoices):
+    EARTHQUAKE = 'earthquake', 'Earthquake'
+    FLOOD = 'flood', 'Flood'
+    TORNADO = 'tornado', 'Tornado'
+    FIRE = 'fire', 'Fire'
+    STORM = 'storm', 'Storm'
 
 class Alert(models.Model):
     
     description = models.TextField(help_text="A brief description of the alert.")
     location = models.PointField(geography=True, help_text="2D geographic location of the alert.")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     deletion_time = models.DateTimeField(null=True, blank=True, help_text="Calculated time when this alert expires.")
 
     country = models.CharField(max_length=100, blank=True, null=True)
@@ -24,15 +33,13 @@ class Alert(models.Model):
     source_url = models.URLField(blank=True, null=True, help_text="Source of information about the alert.")
     positive_votes = models.PositiveIntegerField(default=0, help_text="Number of positive votes.")
     negative_votes = models.PositiveIntegerField(default=0, help_text="Number of negative votes.")
-
-    # Hazard type and specific details
-    hazard_type = models.CharField(max_length=20, choices=[
-        ('earthquake', 'Earthquake'),
-        ('flood', 'Flood'),
-        ('tornado', 'Tornado'),
-        ('fire', 'Fire'),
-        ('storm', 'Storm'),
-    ], help_text="Type of hazard.")
+    
+    hazard_type = models.CharField(
+        max_length=20,
+        choices=HazardType.choices,
+        db_index=True,
+        help_text="Type of hazard."
+    )
 
     # ContentType Fields for Hazard-Specific Models
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
@@ -41,7 +48,7 @@ class Alert(models.Model):
 
     
     def save(self, *args, **kwargs):
-        if not self.deletion_time:
+        if not self.deletion_time or self._state.adding:
             base_times = {
                 'earthquake': timedelta(days=2),
                 'flood': timedelta(days=10),
@@ -54,6 +61,8 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"{self.hazard_type} - {self.description[:50]}"
+
+
 
 # 
 class Earthquake(models.Model):

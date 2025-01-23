@@ -1,5 +1,4 @@
 from django.urls import path, include
-from django.contrib import admin
 from rest_framework.routers import DefaultRouter
 from .views import (AlertViewSet, map_view, CreateAlertView,
                     home_view, resources_view, guide_example_view,
@@ -9,7 +8,6 @@ router = DefaultRouter()
 router.register(r'alerts', AlertViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('home/', home_view, name='home'),
     path('map/', map_view, name='map'),
