@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from .models import Alert
-from .serializers import AlertSerializer, CreateAlertSerializer
+from .serializers import CreateAlertSerializer
 from django.shortcuts import render
 
 from rest_framework.views import APIView
@@ -10,22 +10,32 @@ from django.contrib.gis.geos import Point
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from geopy.geocoders import Nominatim
+from django.views.generic import TemplateView
+
+from rest_framework import generics
+from .serializers import AlertGeoSerializer
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class AlertViewSet(ModelViewSet):
-    queryset = Alert.objects.all()
-    serializer_class = AlertSerializer
-    pagination_class = GeoJsonPagination
+class AlertGeoJsonListView(generics.ListAPIView):
+    """
+    Returns all active alerts in GeoJSON format.
+    """
+    queryset = Alert.objects.filter(is_active=True)
+    serializer_class = AlertGeoSerializer
+
+class HomeView(TemplateView):
+    template_name = "alerts/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 
 def map_view(request):
     return render(request, 'alerts/map.html')
-
-def home_view(request):
-    return render(request, 'alerts/home.html')
 
 def resources_view(request):
     return render(request, 'alerts/resources.html')

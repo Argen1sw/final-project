@@ -3,16 +3,29 @@ from rest_framework import serializers
 from .models import Alert
 
 
-class AlertSerializer(GeoFeatureModelSerializer):
+class AlertGeoSerializer(GeoFeatureModelSerializer):
+    """
+    Serializer to return Alert data as GeoJSON features.
+    """
     class Meta:
         model = Alert
-        geo_field = "location"
-        fields = [
-            "id", "title", "description", "created_at",
-            "hazard_type", "severity", "country", "city", "county",
-            "reported_by", "source_url"
-        ]
-
+        geo_field = 'location'  # Must match your geometry field name.
+        fields = (
+            'id',
+            'description',
+            'created_at',
+            'updated_at',
+            'deletion_time',
+            'country',
+            'city',
+            'county',
+            'reported_by',
+            'source_url',
+            'positive_votes',
+            'negative_votes',
+            'hazard_type',
+            'is_active',
+        )
 
 class CreateAlertSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=100)
