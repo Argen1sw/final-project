@@ -91,7 +91,7 @@ DATABASES = {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "enviro_alerts",
         "USER": "postgres",
-        "PASSWORD": "9784580",
+        "PASSWORD": "uolfinal",
         "HOST": "localhost",
         "PORT": "5432",
     }
