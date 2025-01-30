@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Leaflet CSS (CDN) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="{% static 'alerts/css/style.css' %}">
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <title>Alerts</title>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav>
+      <a href="/">EnviroAlerts</a>
+      <a href="alerts/">Alerts Map</a>
+      <a href="resources/">IOT Resources</a>
+      <a href="about/">About</a>
+      <a href="login/">Login</a>
+    </nav>
+
+    <!-- Map Section -->
+    <div class="map-container">
+      <h2 class="section-title">Interactive Map</h2>
+      <div id="map" style="height: 600px"></div>
+    </div>
+
+    <!-- Alert Forms-->
+    <div id="alert-form">
+      <h3>Add Alert</h3>
+      <form id="alertForm">
+
+        <textarea
+          id="alertDescription"
+          placeholder="Brief description (What is happening, etc.)"
+          required>
+        </textarea><br /><br />
+
+        <!-- Hazard Type Dropdown -->
+        <label for="hazardType">Hazard Type:</label>
+        <select id="hazardType">
+          <option value="earthquake">Earthquake</option>
+          <option value="flood">Flood</option>
+          <option value="tornado">Tornado</option>
+          <option value="fire">Fire</option>
+          <option value="storm">Storm</option>
+        </select><br /><br />
+
+        <!-- Source URL Field -->
+        <label for="sourceUrl">Source URL:</label>
+        <input
+          type="url"
+          id="sourceUrl"
+          placeholder="http://example.com"
+        /><br /><br />
+
+        <!-- Hidden Fields for Lat/Lng -->
+        <input type="hidden" id="alertLat" />
+        <input type="hidden" id="alertLng" />
+
+        <!-- Submit and Cancel Buttons -->
+        <button type="submit">Submit</button>
+        <button type="button" onclick="hideForm()">Cancel</button>
+      </form>
+    </div>
+
+    <!-- Alerts List -->
+    <div class="alerts-container">
+      <h2 class="section-title">Alerts List</h2>
+      <div id="alertsList"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="{% static 'alerts/js/alerts.js' %}"></script>
+  </body>
+</html>

@@ -1,6 +1,7 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework import serializers
 from .models import Alert
+from django.contrib.gis.geos import Point
 
 
 class AlertGeoSerializer(GeoFeatureModelSerializer):
@@ -26,9 +27,3 @@ class AlertGeoSerializer(GeoFeatureModelSerializer):
             'hazard_type',
             'is_active',
         )
-
-class CreateAlertSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=100)
-    description = serializers.CharField(required=False, allow_blank=True)
-    lat = serializers.FloatField()
-    lng = serializers.FloatField()

@@ -1,15 +1,19 @@
 from django.urls import path, include
-from .views import (map_view, CreateAlertView,
+from .views import (AlertsView, CreateAlertView,
                     HomeView, resources_view, guide_example_view,
                     AlertGeoJsonListView)
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
-    path('map/', map_view, name='map'),
+    
+    # Endpoint that returns all the alerts in JSON format
+    path('geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
+    
+    # Alerts webpage endpoint
+    path('alerts/', AlertsView.as_view(), name='alerts_view'),
+    path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
+    
     path('resources/', resources_view, name='resources'),
     path('guide_example/', guide_example_view, name='guide'),
-    path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
-    path(
-        'geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
 ]
