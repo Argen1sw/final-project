@@ -70,6 +70,15 @@ class Alert(models.Model):
         Overriding the save method to:
          - Recalculate deletion_time if it's a new record, or if hazard_type changed, or if deletion_time is not set.
         """
+        if not self.effect_radius:
+            self.effect_radius = {
+                'earthquake': 50000, 
+                'flood': 10000,
+                'tornado': 5000,
+                'fire': 5000,
+                'storm': 50000
+            }.get(self.hazard_type)
+        
         base_times = {
             'earthquake': timedelta(days=2),
             'flood': timedelta(days=10),

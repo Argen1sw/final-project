@@ -31,7 +31,7 @@ const hazardIcons = {
 // Set view where the user is located if possible.
 
 // Initialize the map
-var map = L.map("map").setView([51.505, -0.09], 13);
+var map = L.map("map").setView([51.505, -0.09], 6);
 
 L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -48,47 +48,10 @@ const DEFAULT_RADIUS = {
 };
 
 let currentCircle = null; // Store reference to temporary circle
-let editMode = false;  // Track if we are editing a circle
 
 const ZOOM_THRESHOLD = 12;
 const markerLayer = L.layerGroup().addTo(map);
 const circleLayer = L.layerGroup();
-
-map.off("zoomend", updateVisualization);
-
-// ---------- Deprecated ----------------------
-// Helper function that updates from icons to radius layer depending on the zoom level threshold
-function updateVisualization() {
-  const currentZoom = map.getZoom();
-
-  if (currentZoom >= ZOOM_THRESHOLD){
-    markerLayer.remove();
-    circleLayer.addTo(map);
-  }
-  else {
-    circleLayer.remove();
-    markerLayer.addTo(map);
-  }
-}
-
-// Layer toggle functionality 
-document.getElementById("toggleMarkers").addEventListener('click', () =>{
-  markerLayer.addTo(map);
-  circleLayer.remove();
-  toggleActiveButton('toggleMarkers');
-});
-
-document.getElementById("toggleCircles").addEventListener('click', ()=>{
-  circleLayer.addTo(map);
-  markerLayer.remove();
-  toggleActiveButton('toggleCircles');
-})
-
-function toggleActiveButton (activeId) {
-  document.querySelectorAll('.layer-controls button').forEach(btn =>{
-    btn.classList.toggle('active', btn.id === activeId);
-  });
-}
 
 // Fetch and display all existing alerts using the geojson endpoint
 fetch("/geojson/")
@@ -96,7 +59,7 @@ fetch("/geojson/")
   .then((data) => {
     
     const alertsList = document.getElementById("alertsList");
-    
+
     data.features.forEach((feature) => {
       const coords = feature.geometry.coordinates;
       const {
@@ -125,19 +88,15 @@ fetch("/geojson/")
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
       `);
-      
       markerLayer.addLayer(marker);
       
-      // If radius of effect exist, add radius layer to the map
-      if(effect_radius) {
-        const circle = L.circle([coords[1], coords[0]], {
-          radius: effect_radius,
-          color: '#ff0000',
-          fillColor: '#f03',
-          fillOpacity: 0.2
-        });
-        circleLayer.addLayer(circle);
-      }
+      const circle = L.circle([coords[1], coords[0]], {
+        radius: effect_radius,
+        color: '#ff0000',
+        fillColor: '#f03',
+        fillOpacity: 0.2
+      });
+      circleLayer.addLayer(circle);
 
       // -----TODO: Add pagination to this section or find a better way to
       // add alerts dinamically
@@ -157,12 +116,20 @@ fetch("/geojson/")
       `;
       alertsList.appendChild(alertDiv);
     });
+    
+    let overlayMaps = {
+      "markers": markerLayer,
+      "radius": circleLayer
+    };
+
+    let layerControl = L.control.layers(null, overlayMaps).addTo(map);
+
   })
-  .catch((error) => console.error("Error fetching alerts:", error));
+.catch((error) => console.error("Error fetching alerts:", error));
+
 
 // Show form on map click event listener
 map.on("click", function (e) {
-  if (!editMode) return;
 
   // Remove previous temporary circle
   if (currentCircle) {
@@ -171,8 +138,9 @@ map.on("click", function (e) {
 
   // Create new circle with default radius
   const hazardType = document.getElementById('hazardType').value;
+
   currentCircle = L.circle(e.latlng, {
-    radius: DEFAULT_RADIUS[hazardType],
+    radius: DEFAULT_RADIUS[hazardType] || 10000,
     color: '#ff0000',
     fillColor: '#f03',
     fillOpacity: 0.2,
@@ -186,14 +154,8 @@ map.on("click", function (e) {
   showForm();
 });
 
-// Add instantaneous radius editing functionality
-document.getElementById('effectRadius').addEventListener('input', function(e) {
-  if (!currentCircle) return;
-  const newRadius = parseInt(e.target.value);
-  currentCircle.setRadius(newRadius);
-});
-
 // Enable circle clicks when circle layer is active
+// This is currently not working
 circleLayer.on('click', function(e) {
   const circle = e.target;
   L.popup()
@@ -205,34 +167,12 @@ circleLayer.on('click', function(e) {
     .openOn(map);
 });
 
-// Show form helper function
-function showForm() {
-  editMode = true;
-  document.getElementById("alert-form").style.display = "block";
-  document.getElementById("effectRadius").value = 
-    DEFAULT_RADIUS[document.getElementById('hazardType').value];
-}
-
-// Hide form helper function
-function hideForm() {
-  document.getElementById("alert-form").style.display = "none";
-}
-
-// Function to get the CSRF token from cookies
-function getCSRFToken() {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== "") {
-    const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith("csrftoken=")) {
-        cookieValue = cookie.substring("csrftoken=".length);
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
+// Add instantaneous radius editing functionality
+document.getElementById('effectRadius').addEventListener('input', function(e) {
+  if (!currentCircle) return;
+  const newRadius = parseInt(e.target.value);
+  currentCircle.setRadius(newRadius);
+});
 
 // Handle alert form submission
 document.getElementById("alertForm").addEventListener("submit", function (e) {
@@ -319,7 +259,6 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
       // Cleanup
       map.removeLayer(currentCircle);
       currentCircle = null;
-      editMode = false;
 
       // Dynamically add the alert to the list
       const alertsList = document.getElementById("alertsList");
@@ -350,3 +289,58 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
 });
+
+// Layer toggle functionality 
+// document.getElementById("toggleMarkers").addEventListener('click', () =>{
+//   markerLayer.addTo(map);
+//   circleLayer.remove();
+//   toggleActiveButton('toggleMarkers');
+// });
+
+// Layer toggle functionality
+// document.getElementById("toggleCircles").addEventListener('click', ()=>{
+//   circleLayer.addTo(map);
+//   markerLayer.remove();
+//   toggleActiveButton('toggleCircles');
+// })
+
+// Show form helper function
+function showForm() {
+  document.getElementById("alert-form").style.display = "block";
+  document.getElementById("effectRadius").value = 
+    DEFAULT_RADIUS[document.getElementById('hazardType').value];
+}
+
+// Hide form helper function
+function hideForm() {
+
+  // Remove previous temporary circle
+  if (currentCircle) {
+    map.removeLayer(currentCircle);
+  }
+  document.getElementById("alert-form").style.display = "none";
+
+}
+
+// Function to get the CSRF token from cookies
+function getCSRFToken() {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith("csrftoken=")) {
+        cookieValue = cookie.substring("csrftoken=".length);
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// helper function that change the class name of the layer elements
+function toggleActiveButton (activeId) {
+  document.querySelectorAll('.layer-controls button').forEach(btn =>{
+    btn.classList.toggle('active', btn.id === activeId);
+  });
+}
