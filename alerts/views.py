@@ -71,8 +71,9 @@ class CreateAlertView(APIView):
             alert = Alert.objects.create(
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
+                effect_radius=data.get('effect_radius'),
                 hazard_type=data.get('hazard_type', 'storm'), # Fallback Storm
-                reported_by=current_user, # or None 
+                reported_by=current_user,
                 source_url=data.get('source_url', None),    
                 country=address.get('country', ''),
                 city=address.get('city', address.get('town', '')),
@@ -87,8 +88,8 @@ class CreateAlertView(APIView):
                     "type": "Point",
                     "coordinates": [alert.location.x, alert.location.y]
                 },
+                "effect_radius": alert.effect_radius,
                 "hazard_type": alert.hazard_type,
-
                 "reported_by":(
                     str(alert.reported_by)
                     if alert.reported_by else None

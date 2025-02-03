@@ -15,23 +15,20 @@ class HazardType(models.TextChoices):
     FLOOD = 'flood', 'Flood'
     TORNADO = 'tornado', 'Tornado'
     FIRE = 'fire', 'Fire'
-    STORM = 'storm', 'Storm'
+    STORM = 'storm', 'Storm'    
 
 # 
 class Alert(models.Model):
 
     description = models.TextField(
         help_text="A brief description of the alert.")
-
-
     location = models.PointField(
         geography=True, help_text="2D geographic location of the alert.")
     effect_radius = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Radius of effect in meters (optional)"
+        # null=True,
+        # blank=True,
+        help_text="Radius of effect in meters"
     )
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deletion_time = models.DateTimeField(

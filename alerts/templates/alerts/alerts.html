@@ -23,6 +23,12 @@
       <a href="login/">Login</a>
     </nav>
 
+    <!-- Map layers elements for circles and markes control -->
+    <div class="layer-controls">
+      <button id="toggleMarkers" class="active">Markers</button>
+      <button id="toggleCircles" >Circles</button>
+    </div>
+
     <!-- Map Section -->
     <div class="map-container">
       <h2 class="section-title">Interactive Map</h2>
@@ -56,6 +62,15 @@
           type="url"
           id="sourceUrl"
           placeholder="http://example.com"
+        /><br /><br />
+
+        <!-- Add a radius input in this form -->
+        <!--  -->
+        <label for="effectRadius">Radius of effect:</label>
+        <input
+          type="number"
+          id="effectRadius"
+          placeholder="e.g: 2"
         /><br /><br />
 
         <!-- Hidden Fields for Lat/Lng -->

@@ -10,9 +10,11 @@ class AlertGeoSerializer(GeoFeatureModelSerializer):
     """
     class Meta:
         model = Alert
-        geo_field = 'location'  # Must match your geometry field name.
+        geo_field = 'location'
         fields = (
             'id',
+            'hazard_type',
+            'effect_radius',
             'description',
             'created_at',
             'updated_at',
@@ -24,6 +26,5 @@ class AlertGeoSerializer(GeoFeatureModelSerializer):
             'source_url',
             'positive_votes',
             'negative_votes',
-            'hazard_type',
             'is_active',
         )
