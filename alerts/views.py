@@ -1,18 +1,14 @@
 from rest_framework.viewsets import ModelViewSet
 from .models import Alert
-from .forms import AlertForm
 from django.shortcuts import render
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.gis.geos import Point
-from rest_framework_gis.pagination import GeoJsonPagination
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from geopy.geocoders import Nominatim
-from django.views.generic import TemplateView
-from django.views.generic.edit import FormView
-
+from django.views.generic import TemplateView, ListView
+from django.core.paginator import Paginator
 from django.urls import reverse_lazy
 from rest_framework import generics
 from .serializers import AlertGeoSerializer
@@ -32,10 +28,6 @@ class AlertGeoJsonListView(generics.ListAPIView):
 
 class HomeView(TemplateView):
     template_name = "alerts/home.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
 
 
 class CreateAlertView(APIView):
@@ -111,10 +103,44 @@ class AlertsView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = AlertForm()
+        alerts = Alert.objects.all().order_by('-created_at')
+        paginator = Paginator(alerts, 2)  # 10 alerts per page
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
         return context
 
-
+class AlertsPaginatedView(APIView):
+    def get(self, request, *args, **kwargs):
+        alerts = Alert.objects.all().order_by('-created_at')
+        paginator = Paginator(alerts, 2)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        alerts_data = []
+        for alert in page_obj:
+            alerts_data.append({
+                "id": alert.id,
+                "description": alert.description,
+                "location": {
+                    "type": "Point",
+                    "coordinates": [alert.location.x, alert.location.y]
+                },
+                "effect_radius": alert.effect_radius,
+                "hazard_type": alert.hazard_type,
+                "reported_by": str(alert.reported_by) if alert.reported_by else None,
+                "source_url": alert.source_url,
+                "country": alert.country,
+                "city": alert.city,
+                "county": alert.county,
+                "created_at": alert.created_at.isoformat()
+            })
+        return Response({
+            "alerts": alerts_data,
+            "page": page_obj.number,
+            "num_pages": paginator.num_pages,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous()
+        }, status=status.HTTP_200_OK)
 
 
 def resources_view(request):

@@ -53,6 +53,7 @@ const ZOOM_THRESHOLD = 12;
 const markerLayer = L.layerGroup().addTo(map);
 const circleLayer = L.layerGroup();
 
+
 // Fetch and display all existing alerts using the geojson endpoint
 fetch("/geojson/")
   .then((response) => response.json())
@@ -97,24 +98,6 @@ fetch("/geojson/")
         fillOpacity: 0.2
       });
       circleLayer.addLayer(circle);
-
-      // -----TODO: Add pagination to this section or find a better way to
-      // add alerts dinamically
-
-      // Add alert to the list dynamically
-      const alertDiv = document.createElement("div");
-      alertDiv.classList.add("alert-item");
-      alertDiv.innerHTML = `
-        <strong>${hazard_type})</strong>
-        <p>${description}</p>
-        <p>Location: ${city || county || country || "Unknown"}</p>
-        <p>Reported by: ${reported_by || "Unknown"}</p>
-        <p>
-          <a href="${source_url}" target="_blank">More Info</a>
-        </p>
-        <p><em>Created on: ${creationDate}</em></p>
-      `;
-      alertsList.appendChild(alertDiv);
     });
     
     let overlayMaps = {
@@ -178,10 +161,10 @@ document.getElementById('effectRadius').addEventListener('input', function(e) {
 document.getElementById("alertForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  if (!currentCircle) {
-    alert('Please create a circle first');
-    return;
-  }
+  // if (!currentCircle) {
+  //   alert('Please create a circle first');
+  //   return;
+  // }
 
   const data = {
     description: document.getElementById("alertDescription").value,
@@ -243,23 +226,10 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 
       circleLayer.addLayer(permanentCircle);
 
-      // if (alert.effect_radius) {
-      //   const circle = L.circle(
-      //     [alert.location.coordinates[1], alert.location.coordinates[0]], 
-      //     { 
-      //       radius: alert.effect_radius,
-      //       color: '#ff0000',
-      //       fillColor: '#f03',
-      //       fillOpacity: 0.2
-      //     }
-      //   );
-      //   circleLayer.addLayer(circle);
-      // }
-
       // Cleanup
       map.removeLayer(currentCircle);
       currentCircle = null;
-
+      
       // Dynamically add the alert to the list
       const alertsList = document.getElementById("alertsList");
       const alertDiv = document.createElement("div");
@@ -282,6 +252,86 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
     });
 });
 
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Initialize currentPage and totalPages based on rendered data
+  let currentPage = parseInt(document.querySelector('#current-page').innerText.match(/\d+/)[0]);
+  const totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
+
+  // Function to fetch alerts for a given page
+  function fetchPage(page) {
+    fetch(`/paginated_alerts/?page=${page}`)
+      .then(response => response.json())
+      .then(data => {
+        const alertsList = document.getElementById("alertsList");
+        alertsList.innerHTML = "";  // Clear current alerts
+
+        // Append new alerts
+        data.alerts.forEach(alert => {
+          const alertDiv = document.createElement("div");
+          alertDiv.classList.add("alert-item");
+          alertDiv.innerHTML = `
+            <strong>${alert.hazard_type}</strong>
+            <p>${alert.description}</p>
+            <p>Location: ${alert.city || alert.county || alert.country || "Unknown"}</p>
+            <p>Reported by: ${alert.reported_by || "Unknown"}</p>
+            <p><a href="${alert.source_url}" target="_blank">More Info</a></p>
+            <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
+          `;
+          alertsList.appendChild(alertDiv);
+        });
+
+        // Update current page and pagination display
+        currentPage = data.page;
+        updatePaginationControls(data.page, data.num_pages);
+      })
+      .catch(error => console.error("Error fetching alerts:", error));
+  }
+
+  // Update pagination button states and display text
+  function updatePaginationControls(page, numPages) {
+    const currentPageSpan = document.getElementById("current-page");
+    currentPageSpan.innerText = `Page ${page} of ${numPages}`;
+    document.getElementById("first-page").disabled = (page === 1);
+    document.getElementById("prev-page").disabled = (page === 1);
+    document.getElementById("next-page").disabled = (page === numPages);
+    document.getElementById("last-page").disabled = (page === numPages);
+  }
+
+  // Event listeners for pagination buttons
+  document.getElementById("first-page").addEventListener("click", function() {
+    if (currentPage > 1) {
+      fetchPage(1);
+    }
+  });
+
+  document.getElementById("prev-page").addEventListener("click", function() {
+    if (currentPage > 1) {
+      fetchPage(currentPage - 1);
+    }
+  });
+
+  document.getElementById("next-page").addEventListener("click", function() {
+    if (currentPage < totalPages) {
+      fetchPage(currentPage + 1);
+    }
+  });
+
+  document.getElementById("last-page").addEventListener("click", function() {
+    if (currentPage < totalPages) {
+      fetchPage(totalPages);
+    }
+  });
+
+  // Initialize button states on page load
+  updatePaginationControls(currentPage, totalPages);
+});
+
+
+
+
+
 // Add hazard type change event listener
 document.getElementById('hazardType').addEventListener('change', function(e) {
   if (!currentCircle) return;
@@ -289,20 +339,6 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
 });
-
-// Layer toggle functionality 
-// document.getElementById("toggleMarkers").addEventListener('click', () =>{
-//   markerLayer.addTo(map);
-//   circleLayer.remove();
-//   toggleActiveButton('toggleMarkers');
-// });
-
-// Layer toggle functionality
-// document.getElementById("toggleCircles").addEventListener('click', ()=>{
-//   circleLayer.addTo(map);
-//   markerLayer.remove();
-//   toggleActiveButton('toggleCircles');
-// })
 
 // Show form helper function
 function showForm() {
@@ -344,3 +380,12 @@ function toggleActiveButton (activeId) {
     btn.classList.toggle('active', btn.id === activeId);
   });
 }
+
+// Draggable feature from Jquery for the alert creation form
+$(function() {
+  // Make the alert form draggable.
+  $( "#alert-form" ).draggable({
+    // Optional: prevent dragging when interacting with form elements
+    cancel: "textarea, input, button, select, option"
+  });
+});

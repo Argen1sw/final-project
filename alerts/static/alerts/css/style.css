@@ -173,7 +173,8 @@ border-radius: 5px;
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	transform: translate(-50%, -50%);
+	margin-top: -200px; 
+	margin-left: -200px; 
 	z-index: 1000;
 	background: white;
 	padding: 20px;
@@ -198,24 +199,10 @@ border-radius: 5px;
 	color: #333;
 }
 
-/* Layer buttons Style */
-.layer-controls {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	z-index: 1000;
-	background: white;
-	padding: 5px;
-	border-radius: 4px;
-  }
-  
-  .layer-controls button {
-	display: block;
-	margin: 2px;
-	padding: 5px 10px;
-  }
-  
-  .layer-controls button.active {
-	background: #007bff;
-	color: white;
+/* Alert creation form css draggable header*/
+#alert-form {
+	cursor: grab;
+	background: #f2f2f2;
+	padding: 10px;
+	border-bottom: 1px solid #ddd;
   }
