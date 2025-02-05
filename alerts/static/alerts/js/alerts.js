@@ -27,9 +27,6 @@ const hazardIcons = {
   // Add more hazard types as needed
 };
 
-// --------- TO-DO: -----------------
-// Set view where the user is located if possible.
-
 // Initialize the map
 var map = L.map("map").setView([51.505, -0.09], 6);
 
@@ -122,6 +119,7 @@ map.on("click", function (e) {
   // Create new circle with default radius
   const hazardType = document.getElementById('hazardType').value;
 
+  // add the circle to the map
   currentCircle = L.circle(e.latlng, {
     radius: DEFAULT_RADIUS[hazardType] || 10000,
     color: '#ff0000',
@@ -148,11 +146,6 @@ document.getElementById('effectRadius').addEventListener('input', function(e) {
 // Handle alert form submission
 document.getElementById("alertForm").addEventListener("submit", function (e) {
   e.preventDefault();
-
-  // if (!currentCircle) {
-  //   alert('Please create a circle first');
-  //   return;
-  // }
 
   const data = {
     description: document.getElementById("alertDescription").value,
@@ -244,7 +237,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 // ------------------ All this event listener could be in a separate JS file --------------
 // Pagination and Search functionality for alerts list
 document.addEventListener("DOMContentLoaded", function() {
-  // Initialize currentPage and totalPages based on rendered data
+  // Initialize currentPage and totalPages based on rendered data (DOMcontentLoaded)
   let currentPage = parseInt(document.querySelector('#current-page').innerText.match(/\d+/)[0]);
   let totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
 
@@ -344,10 +337,6 @@ document.addEventListener("DOMContentLoaded", function() {
   updatePaginationControls(currentPage, totalPages);
 });
 
-
-
-
-
 // Add hazard type change event listener
 document.getElementById('hazardType').addEventListener('change', function(e) {
   if (!currentCircle) return;
@@ -355,6 +344,68 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
 });
+
+
+// Geolocate the user if possible, this will add a circle to the map in the user's location
+// and display the alert form with the location pre-filled
+document.addEventListener("DOMContentLoaded", function() {
+  const locationBtn = document.getElementById("current-location-btn");
+
+  locationBtn.addEventListener("click", function() {
+    // Check if geolocation is supported by the browser
+    if ("geolocation" in navigator) {
+      // Optionally, display a loading indicator here
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          // On success, get the coordinates
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          
+          // Remove previous temporary circle
+          if (currentCircle) {
+            map.removeLayer(currentCircle);
+          }
+
+          // Create new circle with default radius
+          const hazardType = document.getElementById('hazardType').value;
+
+          // Update the hidden form fields so they can be submitted
+          document.getElementById("alertLat").value = latitude;
+          document.getElementById("alertLng").value = longitude;
+          var latLng_ = L.latLng(latitude, longitude);
+          
+          // Example: Center the Leaflet map at the user's location
+          if (typeof map !== 'undefined') {
+            map.setView([latitude, longitude], 13);
+
+            // Add circle to map
+            currentCircle = L.circle(latLng_, {
+              radius: DEFAULT_RADIUS[hazardType] || 10000,
+              color: '#ff0000',
+              fillColor: '#f03',
+              fillOpacity: 0.2,
+              interactive: false
+            }).addTo(map);
+          }
+          
+          document.getElementById('effectRadius').value = currentCircle.getRadius();
+
+          showForm();
+        },
+        function(error) {
+          // Handle errors (e.g., user denied permission, timeout, etc.)
+          console.error("Error retrieving location: ", error);
+          alert("Unable to retrieve your location. Please try again.");
+        }
+      );
+    } else {
+      // Browser does not support geolocation
+      alert("Geolocation is not supported by your browser.");
+    }
+  });
+});
+
 
 // Show form helper function
 function showForm() {
