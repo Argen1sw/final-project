@@ -137,18 +137,6 @@ map.on("click", function (e) {
   showForm();
 });
 
-// Enable circle clicks when circle layer is active
-// This is currently not working
-circleLayer.on('click', function(e) {
-  const circle = e.target;
-  L.popup()
-    .setLatLng(circle.getLatLng())
-    .setContent(`
-      <b>Radius:</b> ${circle.getRadius()}m<br>
-      <b>Center:</b> ${circle.getLatLng().lat.toFixed(4)}, ${circle.getLatLng().lng.toFixed(4)}
-    `)
-    .openOn(map);
-});
 
 // Add instantaneous radius editing functionality
 document.getElementById('effectRadius').addEventListener('input', function(e) {
@@ -253,21 +241,31 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 });
 
 
-
+// ------------------ All this event listener could be in a separate JS file --------------
+// Pagination and Search functionality for alerts list
 document.addEventListener("DOMContentLoaded", function() {
   // Initialize currentPage and totalPages based on rendered data
   let currentPage = parseInt(document.querySelector('#current-page').innerText.match(/\d+/)[0]);
-  const totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
+  let totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
 
-  // Function to fetch alerts for a given page
+  // Global variable to hold the current search term
+  let searchQuery = "";
+
+  // Function to fetch alerts for a given page and optional search term
   function fetchPage(page) {
-    fetch(`/paginated_alerts/?page=${page}`)
+
+    // Build the URL including the search term if any
+    let url = `/paginated_alerts/?page=${page}`;
+    if (searchQuery) {
+      url += `&q=${encodeURIComponent(searchQuery)}`;
+    }
+    fetch(url)
       .then(response => response.json())
       .then(data => {
         const alertsList = document.getElementById("alertsList");
-        alertsList.innerHTML = "";  // Clear current alerts
+        alertsList.innerHTML = "";
 
-        // Append new alerts
+        // Append new alerts received from the server / API
         data.alerts.forEach(alert => {
           const alertDiv = document.createElement("div");
           alertDiv.classList.add("alert-item");
@@ -284,9 +282,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Update current page and pagination display
         currentPage = data.page;
+        totalPages = data.num_pages;
         updatePaginationControls(data.page, data.num_pages);
       })
-      .catch(error => console.error("Error fetching alerts:", error));
+    .catch(error => console.error("Error fetching alerts:", error));
   }
 
   // Update pagination button states and display text
@@ -322,6 +321,23 @@ document.addEventListener("DOMContentLoaded", function() {
     if (currentPage < totalPages) {
       fetchPage(totalPages);
     }
+  });
+
+  // Search functionality: Listen for inputs event the search field
+  let debounceTimeout;
+  document.getElementById("search-input").addEventListener("input", function(e) {
+    clearTimeout(debounceTimeout);
+
+    // Update the global searchQuery variable with the current input value
+    searchQuery = this.value;
+
+    // Debounce the search input to avoid making too many requests
+    debounceTimeout = setTimeout(() => {
+      // Fetch the first page of results for the new search query
+      fetchPage(1);
+    }, 500);
+
+    fetchPage(1);
   });
 
   // Initialize button states on page load

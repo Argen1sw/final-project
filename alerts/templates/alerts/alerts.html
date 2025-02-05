@@ -83,8 +83,17 @@
       </form>
     </div>
 
-          
     {% block content %}
+    <!-- Search Bar -->
+    <div class="search-container">
+      <h2 class="section-title">Search Alerts</h2>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by location, hazard type, etc."
+      />
+    </div>
+        
     <!-- Alerts List -->
     <div class="alerts-container">
       <h2 class="section-title">Alerts List</h2>

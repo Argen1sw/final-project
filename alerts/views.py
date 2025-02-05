@@ -1,20 +1,24 @@
-from rest_framework.viewsets import ModelViewSet
-from .models import Alert
-from django.shortcuts import render
+# PEP8 Checked
+# Standard Library Imports
+import logging
 
+# Django Imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.gis.geos import Point
 from geopy.geocoders import Nominatim
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView
 from django.core.paginator import Paginator
-from django.urls import reverse_lazy
 from rest_framework import generics
-from .serializers import AlertGeoSerializer
-from django.http import JsonResponse
+from django.db.models import Q
 
-import logging
+
+# Local Imports
+from .serializers import AlertGeoSerializer
+from .models import Alert
+
+# Idk what is this for yet
 logger = logging.getLogger(__name__)
 
 
@@ -30,10 +34,23 @@ class HomeView(TemplateView):
     template_name = "alerts/home.html"
 
 
+class AlertsView(TemplateView):
+    template_name = 'alerts/alerts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        alerts = Alert.objects.all().order_by('-created_at')
+        paginator = Paginator(alerts, 4) 
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
+
+
 class CreateAlertView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
-        
+
         # Validate input data
         lat = data.get('lat')
         lng = data.get('lng')
@@ -57,21 +74,21 @@ class CreateAlertView(APIView):
 
         # Automatically set `reported_by` to the logged-in user
         current_user = request.user if request.user.is_authenticated else None
-        
+
         # Create alert
         try:
             alert = Alert.objects.create(
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                hazard_type=data.get('hazard_type', 'storm'), # Fallback Storm
+                hazard_type=data.get('hazard_type', 'storm'),  # Fallback Storm
                 reported_by=current_user,
-                source_url=data.get('source_url', None),    
+                source_url=data.get('source_url', None),
                 country=address.get('country', ''),
                 city=address.get('city', address.get('town', '')),
                 county=address.get('county', '')
             )
-            
+
             # Build response
             return Response({
                 "id": alert.id,
@@ -82,40 +99,44 @@ class CreateAlertView(APIView):
                 },
                 "effect_radius": alert.effect_radius,
                 "hazard_type": alert.hazard_type,
-                "reported_by":(
+                "reported_by": (
                     str(alert.reported_by)
                     if alert.reported_by else None
                 ),
-                
+
                 "source_url": alert.source_url,
                 "country": alert.country,
                 "city": alert.city,
                 "county": alert.county,
                 "created_at": alert.created_at
             }, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response({"error": f"Error creating Alert: {str(e)}"}, status=400)
 
-
-class AlertsView(TemplateView):
-    template_name = 'alerts/alerts.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        alerts = Alert.objects.all().order_by('-created_at')
-        paginator = Paginator(alerts, 2)  # 10 alerts per page
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-        context['page_obj'] = page_obj
-        return context
-
+# View to return paginated alerts data 
+# (optionally filtered by a search query) in JSON format
 class AlertsPaginatedView(APIView):
+
     def get(self, request, *args, **kwargs):
-        alerts = Alert.objects.all().order_by('-created_at')
-        paginator = Paginator(alerts, 2)
+        # Grab the optional search term from the query string
+        search_query = request.GET.get('q', '')
+        
+        if search_query:
+            alerts = Alert.objects.filter(
+                Q(description__icontains=search_query) |
+                Q(hazard_type__icontains=search_query) |
+                Q(country__icontains=search_query) |
+                Q(city__icontains=search_query) |
+                Q(county__icontains=search_query)
+            ).order_by('-created_at')
+        else:
+            alerts = Alert.objects.all().order_by('-created_at')
+        
+        paginator = Paginator(alerts, 4)
         page_number = request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
+        
         alerts_data = []
         for alert in page_obj:
             alerts_data.append({
@@ -143,14 +164,20 @@ class AlertsPaginatedView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-def resources_view(request):
-    return render(request, 'alerts/resources.html')
 
-def guide_example_view(request):
-    return render(request, 'alerts/guide_example.html')
 
-def about_view(request):
-    return render(request, 'alerts/about.html')
 
-def login_view(request):
-    return render(request, 'alerts/login.html')
+# def resources_view(request):
+#     return render(request, 'alerts/resources.html')
+
+
+# def guide_example_view(request):
+#     return render(request, 'alerts/guide_example.html')
+
+
+# def about_view(request):
+#     return render(request, 'alerts/about.html')
+
+
+# def login_view(request):
+#     return render(request, 'alerts/login.html')
