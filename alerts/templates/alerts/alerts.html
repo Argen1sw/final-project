@@ -102,7 +102,9 @@
       <h2 class="section-title">Alerts List</h2>
       <div id="alertsList">
         {% for alert in page_obj %}
-          <div class="alert-item">
+          <div class="alert-item"
+              data-Lat="{{ alert.location.y }}",
+              data-Lng="{{ alert.location.x }}">
             <strong>{{ alert.hazard_type }}</strong>
             <p>{{ alert.description }}</p>
             <p>Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}</p>
@@ -125,8 +127,8 @@
         <button id="next-page">Next</button>
         <button id="last-page">Last</button>
       </div>
-    </div>
-    
+    </div> 
+
     {% endblock %}
     <!-- Leaflet JS -->
     <script src="{% static 'alerts/js/alerts.js' %}"></script>

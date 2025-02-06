@@ -46,12 +46,11 @@ const DEFAULT_RADIUS = {
 
 let currentCircle = null; // Store reference to temporary circle
 
-const ZOOM_THRESHOLD = 12;
 const markerLayer = L.layerGroup().addTo(map);
 const circleLayer = L.layerGroup();
 
 
-// Fetch and display all existing alerts using the geojson endpoint
+// Fetch and display all existing alerts in the map using the geojson endpoint
 fetch("/geojson/")
   .then((response) => response.json())
   .then((data) => {
@@ -102,7 +101,7 @@ fetch("/geojson/")
       "radius": circleLayer
     };
 
-    let layerControl = L.control.layers(null, overlayMaps).addTo(map);
+    L.control.layers(null, overlayMaps).addTo(map);
 
   })
 .catch((error) => console.error("Error fetching alerts:", error));
@@ -270,6 +269,23 @@ document.addEventListener("DOMContentLoaded", function() {
             <p><a href="${alert.source_url}" target="_blank">More Info</a></p>
             <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
           `;
+          alertDiv.addEventListener("click", function() {
+            // Retrieve the latitude and longitude from the data attributes
+            const lng = parseFloat(alert.location.coordinates[0]);
+            const lat = parseFloat(alert.location.coordinates[1]);
+
+            // Center the Leaflet map at the alert's location
+            if (typeof map !== 'undefined') {
+              map.setView([lat, lng], 13);
+            }
+
+            // Scroll the map element into view smoothly
+            const mapElement = document.getElementById('map');
+            if (mapElement) {
+              mapElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+
           alertsList.appendChild(alertDiv);
         });
 
@@ -279,6 +295,7 @@ document.addEventListener("DOMContentLoaded", function() {
         updatePaginationControls(data.page, data.num_pages);
       })
     .catch(error => console.error("Error fetching alerts:", error));
+
   }
 
   // Update pagination button states and display text
@@ -290,6 +307,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("next-page").disabled = (page === numPages);
     document.getElementById("last-page").disabled = (page === numPages);
   }
+
 
   // Event listeners for pagination buttons
   document.getElementById("first-page").addEventListener("click", function() {
@@ -332,10 +350,39 @@ document.addEventListener("DOMContentLoaded", function() {
 
     fetchPage(1);
   });
-
+  
   // Initialize button states on page load
   updatePaginationControls(currentPage, totalPages);
 });
+
+
+// Add a click event listener to each alert item to center the map at the alert's location
+document.addEventListener("DOMContentLoaded", function() {
+  // Select all alert items
+  const alertElements = document.querySelectorAll('.alert-item');
+
+  // Loop through each element and attach a click event listener
+  alertElements.forEach(el => {
+    el.addEventListener("click", function(e) {
+      // Retrieve the latitude and longitude from the data attributes
+      const lat = parseFloat(el.getAttribute('data-lat'));
+      const lng = parseFloat(el.getAttribute('data-lng'));
+
+      // Center the Leaflet map at the alert's location
+      if (typeof map !== 'undefined') {
+        map.setView([lat, lng], 13);
+      }
+
+      // Scroll the map element into view smoothly
+      const mapElement = document.getElementById('map');
+      if (mapElement) {
+        mapElement.scrollIntoView({ behavior: 'smooth' });
+      }
+
+    });
+  });
+});
+
 
 // Add hazard type change event listener
 document.getElementById('hazardType').addEventListener('change', function(e) {
@@ -375,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function() {
           document.getElementById("alertLng").value = longitude;
           var latLng_ = L.latLng(latitude, longitude);
           
-          // Example: Center the Leaflet map at the user's location
+          // Center the Leaflet map at the user's location
           if (typeof map !== 'undefined') {
             map.setView([latitude, longitude], 13);
 
