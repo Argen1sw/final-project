@@ -100,7 +100,7 @@ fetch("/geojson/")
       "markers": markerLayer,
       "radius": circleLayer
     };
-
+ 
     L.control.layers(null, overlayMaps).addTo(map);
 
   })
