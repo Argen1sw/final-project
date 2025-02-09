@@ -1,6 +1,5 @@
 // Alerts.js
 
-// ---------------------- Expand on this by adding my own icons -------------------------------------
 // Define custom icons for different hazard types
 const hazardIcons = {
   // Default icon (can use Leaflet's default)
@@ -44,9 +43,9 @@ L.tileLayer(
   {}
 ).addTo(map);
 
-// Alerts default radius of effect 
+// Alerts default radius of effect in meters
 const DEFAULT_RADIUS = {
-  earthquake: 50000,    // meters
+  earthquake: 50000,    
   flood: 10000,
   tornado: 5000,
   fire: 5000,
@@ -74,8 +73,9 @@ fetch("/geojson/")
   .then((response) => response.json())
   .then((data) => {
     
-    const alertsList = document.getElementById("alertsList");
+    // const alertsList = document.getElementById("alertsList");
 
+    // Loop through each alert and add a marker to the map
     data.features.forEach((feature) => {
       const coords = feature.geometry.coordinates;
       const {
@@ -532,13 +532,6 @@ function getCSRFToken() {
     }
   }
   return cookieValue;
-}
-
-// helper function that change the class name of the layer elements
-function toggleActiveButton (activeId) {
-  document.querySelectorAll('.layer-controls button').forEach(btn =>{
-    btn.classList.toggle('active', btn.id === activeId);
-  });
 }
 
 // Draggable feature from Jquery for the alert creation form

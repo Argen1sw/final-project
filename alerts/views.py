@@ -21,7 +21,7 @@ from .models import Alert
 # Idk what is this for yet
 logger = logging.getLogger(__name__)
 
-
+# View to return all active alerts in GeoJSON format
 class AlertGeoJsonListView(generics.ListAPIView):
     """
     Returns all active alerts in GeoJSON format.
@@ -29,10 +29,18 @@ class AlertGeoJsonListView(generics.ListAPIView):
     queryset = Alert.objects.filter(is_active=True)
     serializer_class = AlertGeoSerializer
 
-
+# 
 class HomeView(TemplateView):
     template_name = "alerts/home.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        alerts = Alert.objects.all().order_by('-created_at')
+        paginator = Paginator(alerts, 4) 
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
 
 class AlertsView(TemplateView):
     template_name = 'alerts/alerts.html'
