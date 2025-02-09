@@ -17,6 +17,17 @@
     <link rel="stylesheet" href="{% static 'alerts/css/style.css' %}">
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <script>
+      const ICONS = {
+        earthquake_icon: "{% static 'alerts/images/earthquake.png' %}",
+        fire_icon: "{% static 'alerts/images/fire.png' %}",
+        flood_icon: "{% static 'alerts/images/flood.png' %}",
+        storm_icon: "{% static 'alerts/images/storm.png' %}",
+        tornado_icon: "{% static 'alerts/images/tornado.png' %}",
+      };
+    </script>
+
     <title>Alerts</title>
   </head>
   <body>
@@ -37,7 +48,7 @@
     
     <!-- Location Fields -->
     <button type="button" id="current-location-btn">Use My Current Location</button>    
-    
+
     <!-- Alert Forms-->
     <div id="alert-form">
       <h3>Add Alert</h3>

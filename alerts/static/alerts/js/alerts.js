@@ -10,21 +10,30 @@ const hazardIcons = {
       iconAnchor: [12, 41]
   }),
   fire: L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+      iconUrl: ICONS.fire_icon,
       iconSize: [25, 41],
       iconAnchor: [12, 41]
   }),
   flood: L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+      iconUrl: ICONS.flood_icon,
       iconSize: [25, 41],
       iconAnchor: [12, 41]
   }),
   earthquake: L.icon({
-      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+      iconUrl: ICONS.earthquake_icon,
       iconSize: [25, 41],
       iconAnchor: [12, 41]
   }),
-  // Add more hazard types as needed
+  tornado: L.icon({
+      iconUrl: ICONS.tornado_icon,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41]
+  }),
+  storm: L.icon({
+      iconUrl: ICONS.storm_icon,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41]
+  })
 };
 
 // Initialize the map
@@ -128,7 +137,7 @@ fetch("/geojson/")
       }
     }
 
-    overlayMaps.radius = circleLayer;
+    overlayMaps["Show Radius"] = circleLayer;
  
     L.control.layers(null, overlayMaps).addTo(map);
 
