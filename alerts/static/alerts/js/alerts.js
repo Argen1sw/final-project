@@ -46,7 +46,17 @@ const DEFAULT_RADIUS = {
 
 let currentCircle = null; // Store reference to temporary circle
 
-const markerLayer = L.layerGroup().addTo(map);
+// layer group for markers types of alerts -- Adjust this whenever a new hazard type is added
+// create an dict of layer groups for each hazard type
+layerGroups = {
+  earthquake: L.layerGroup().addTo(map),
+  flood: L.layerGroup().addTo(map),
+  tornado: L.layerGroup().addTo(map),
+  fire: L.layerGroup().addTo(map),
+  storm: L.layerGroup().addTo(map),
+  default: L.layerGroup().addTo(map)
+};
+
 const circleLayer = L.layerGroup();
 
 
@@ -85,8 +95,18 @@ fetch("/geojson/")
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
       `);
-      markerLayer.addLayer(marker);
       
+      // Add the marker to the appropriate layer group
+      for (let key in layerGroups) {
+        if (layerGroups.hasOwnProperty(key)) {
+          const layerGroup = layerGroups[key];
+          if (key === hazard_type) {
+            layerGroup.addLayer(marker);
+          }
+        }
+      }
+      
+      // Add the marker to the map
       const circle = L.circle([coords[1], coords[0]], {
         radius: effect_radius,
         color: '#ff0000',
@@ -94,12 +114,21 @@ fetch("/geojson/")
         fillOpacity: 0.2
       });
       circleLayer.addLayer(circle);
+
     });
     
-    let overlayMaps = {
-      "markers": markerLayer,
-      "radius": circleLayer
-    };
+    // Create an object to hold the layer groups for the control
+    let overlayMaps = {}
+
+    // Add the layer groups to the map
+    for (let key in layerGroups) {
+      if (layerGroups.hasOwnProperty(key)) {
+        const layerGroup = layerGroups[key];
+        overlayMaps[key] = layerGroup;
+      }
+    }
+
+    overlayMaps.radius = circleLayer;
  
     L.control.layers(null, overlayMaps).addTo(map);
 
@@ -186,7 +215,15 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
         <a href="${alert.source_url || '#'}" target="_blank">More Info</a>
       `);
       
-      markerLayer.addLayer(marker);
+      // Add the marker to the appropriate layer group
+      for (let key in layerGroups) {
+        if (layerGroups.hasOwnProperty(key)) {
+          const layerGroup = layerGroups[key];
+          if (key === alert.hazard_type) {
+            layerGroup.addLayer(marker);
+          }
+        }
+      }
 
       // Add permanent circle
       const permanentCircle = L.circle(
