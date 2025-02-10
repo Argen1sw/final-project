@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from django.core.paginator import Paginator
 from rest_framework import generics
 from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 # Local Imports
@@ -29,7 +30,7 @@ class AlertGeoJsonListView(generics.ListAPIView):
     queryset = Alert.objects.filter(is_active=True)
     serializer_class = AlertGeoSerializer
 
-# 
+ 
 class HomeView(TemplateView):
     template_name = "alerts/home.html"
 
@@ -42,7 +43,8 @@ class HomeView(TemplateView):
         context['page_obj'] = page_obj
         return context
 
-class AlertsView(TemplateView):
+
+class AlertsView(LoginRequiredMixin, TemplateView):
     template_name = 'alerts/alerts.html'
 
     def get_context_data(self, **kwargs):
@@ -55,7 +57,7 @@ class AlertsView(TemplateView):
         return context
 
 
-class CreateAlertView(APIView):
+class CreateAlertView(LoginRequiredMixin, APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
 
@@ -186,6 +188,3 @@ class AlertsPaginatedView(APIView):
 # def about_view(request):
 #     return render(request, 'alerts/about.html')
 
-
-# def login_view(request):
-#     return render(request, 'alerts/login.html')

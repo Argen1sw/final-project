@@ -1,4 +1,4 @@
-{% extends './base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}EnviroAlerts | Alert management {% endblock %}
@@ -14,8 +14,9 @@
   <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
 
   <!-- Leaflet CSS (CDN) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  {% comment %} https://leafletjs.com/download.html {% endcomment %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const ICONS = {
       earthquake_icon: "{% static 'alerts/images/earthquake.png' %}",
@@ -28,105 +29,107 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Map Section -->
-  <div class="map-container">
-    <h2 class="section-title">Interactive Map</h2>
-    <div id="map" style="height: 600px"></div>
-  </div>
-  
-  <!-- Location Fields -->
-  <button type="button" id="current-location-btn">Use My Current Location</button>    
+  <div class="container">
+    <!-- Map Section -->
+    <div class="map-container">
+      <h2 class="section-title">Interactive Map</h2>
+      <div id="map" style="height: 600px"></div>
+    </div>
+    
+    <!-- Location Fields -->
+    <button type="button" id="current-location-btn">Use My Current Location</button>    
 
-  <!-- Alert Forms-->
-  <div id="alert-form">
-    <h3>Add Alert</h3>
-    <form id="alertForm">
+    <!-- Alert Forms-->
+    <div id="alert-form">
+      <h3>Add Alert</h3>
+      <form id="alertForm">
 
-      <textarea
-        id="alertDescription"
-        placeholder="Brief description (What is happening, etc.)"
-        required>
-      </textarea><br /><br />
+        <textarea
+          id="alertDescription"
+          placeholder="Brief description (What is happening, etc.)"
+          required>
+        </textarea><br /><br />
 
-      <!-- Hazard Type Dropdown -->
-      <label for="hazardType">Hazard Type:</label>
-      <select id="hazardType">
-        <option value="earthquake">Earthquake</option>
-        <option value="flood">Flood</option>
-        <option value="tornado">Tornado</option>
-        <option value="fire">Fire</option>
-        <option value="storm">Storm</option>
-      </select><br /><br />
+        <!-- Hazard Type Dropdown -->
+        <label for="hazardType">Hazard Type:</label>
+        <select id="hazardType">
+          <option value="earthquake">Earthquake</option>
+          <option value="flood">Flood</option>
+          <option value="tornado">Tornado</option>
+          <option value="fire">Fire</option>
+          <option value="storm">Storm</option>
+        </select><br /><br />
 
-      <!-- Source URL Field -->
-      <label for="sourceUrl">Source URL:</label>
-      <input
-        type="url"
-        id="sourceUrl"
-        placeholder="http://example.com"
-      /><br /><br />
+        <!-- Source URL Field -->
+        <label for="sourceUrl">Source URL:</label>
+        <input
+          type="url"
+          id="sourceUrl"
+          placeholder="http://example.com"
+        /><br /><br />
 
-      <!-- Add a radius input in this form -->
-      <!--  -->
-      <label for="effectRadius">Radius of effect:</label>
-      <input
-        type="number"
-        id="effectRadius"
-        placeholder="e.g: 2"
-      /><br /><br />
+        <!-- Add a radius input in this form -->
+        <!--  -->
+        <label for="effectRadius">Radius of effect:</label>
+        <input
+          type="number"
+          id="effectRadius"
+          placeholder="e.g: 2"
+        /><br /><br />
 
-      <!-- Hidden Fields for Lat/Lng -->
-      <input type="hidden" id="alertLat" />
-      <input type="hidden" id="alertLng" />
+        <!-- Hidden Fields for Lat/Lng -->
+        <input type="hidden" id="alertLat" />
+        <input type="hidden" id="alertLng" />
 
-      <!-- Submit and Cancel Buttons -->
-      <button type="submit">Submit</button>
-      <button type="button" onclick="hideForm()">Cancel</button>
-    </form>
-  </div>
-
-  <!-- Search Bar -->
-  <div class="search-container">
-    <h2 class="section-title">Search Alerts</h2>
-    <input
-      type="text"
-      id="search-input"
-      placeholder="Search by location, hazard type, etc."
-    />
-  </div>
-      
-  <!-- Alerts List -->
-  <div class="alerts-container">
-    <h2 class="section-title">Alerts List</h2>
-    <div id="alertsList">
-      {% for alert in page_obj %}
-        <div class="alert-item"
-            data-Lat="{{ alert.location.y }}",
-            data-Lng="{{ alert.location.x }}">
-          <strong>{{ alert.hazard_type }}</strong>
-          <p>{{ alert.description }}</p>
-          <p>Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}</p>
-          <p>Reported by: {{ alert.reported_by|default:"Unknown" }}</p>
-          <p>
-            <a href="{{ alert.source_url }}" target="_blank">More Info</a>
-          </p>
-          <p><em>Created on: {{ alert.created_at }}</em></p>
-        </div>
-      {% endfor %}
+        <!-- Submit and Cancel Buttons -->
+        <button type="submit">Submit</button>
+        <button type="button" onclick="hideForm()">Cancel</button>
+      </form>
     </div>
 
-    <!-- Pagination Controls -->
-    <div class="pagination">
-      <button id="first-page">First</button>
-      <button id="prev-page">Previous</button>
-      <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-      </span>
-      <button id="next-page">Next</button>
-      <button id="last-page">Last</button>
+    <!-- Search Bar -->
+    <div class="search-container">
+      <h2 class="section-title">Search Alerts</h2>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by location, hazard type, etc."
+      />
     </div>
-  </div> 
+        
+    <!-- Alerts List -->
+    <div class="alerts-container">
+      <h2 class="section-title">Alerts List</h2>
+      <div id="alertsList">
+        {% for alert in page_obj %}
+          <div class="alert-item"
+              data-Lat="{{ alert.location.y }}",
+              data-Lng="{{ alert.location.x }}">
+            <strong>{{ alert.hazard_type }}</strong>
+            <p>{{ alert.description }}</p>
+            <p>Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}</p>
+            <p>Reported by: {{ alert.reported_by|default:"Unknown" }}</p>
+            <p>
+              <a href="{{ alert.source_url }}" target="_blank">More Info</a>
+            </p>
+            <p><em>Created on: {{ alert.created_at }}</em></p>
+          </div>
+        {% endfor %}
+      </div>
 
-  <!-- Leaflet JS -->
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <button id="first-page">First</button>
+        <button id="prev-page">Previous</button>
+        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <button id="next-page">Next</button>
+        <button id="last-page">Last</button>
+      </div>
+    </div> 
+  </div>
+
+  <!-- Leaflet JS and AJAX -->
   <script src="{% static 'alerts/js/alerts.js' %}"></script>
 {% endblock %}

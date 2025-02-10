@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}EnviroAlerts | Manage Users{% endblock %}
+
+{% block map_features %} 
+  <link rel="stylesheet" href="{% static 'users/css/style.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <!-- Header -->
+    <div class="header-title">Manage Users</div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <h2 class="section-title">Search Users</h2>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by username, email, etc."
+      />
+    </div>
+          
+    <!-- Users List -->
+    <div class="users-container">
+      <h2 class="section-title">Users List</h2>
+      <div id="usersList">
+        {% for user in users %}
+          <div class="user-item">
+            <div class="user-details">
+              <strong>Username:</strong> {{ user.username }}<br>
+              <strong>Email:</strong> {{ user.email }}<br>
+              <strong>Date Joined:</strong> {{ user.date_joined|date:"Y-m-d" }}<br>
+              <strong>User Type:</strong> {{ user.get_user_type_display }}<br>
+              <strong>Bio:</strong> {{ user.bio|default:"No bio" }}<br>
+              <strong>Alerts Created:</strong> {{ user.alerts_created }}<br>
+              <strong>Alerts Verified:</strong> {{ user.alerts_verified }}<br>
+              <strong>Email Verified:</strong> {{ user.is_verified|yesno:"Yes,No" }}<br>
+              <strong>Account Suspended:</strong> {{ user.is_suspended|yesno:"Yes,No" }}<br>
+            </div>
+            <div class="user-actions">
+              {% if request.user.is_admin %}
+                <!-- Admin can manage all users -->
+                {% if user.is_suspended %}
+                  <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                {% else %}
+                  <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                {% endif %}
+
+              {% elif request.user.is_ambassador %}
+                <!-- Ambassadors can only manage normal users -->
+                {% if user.is_normal_user %}
+                  {% if user.is_suspended %}
+                    <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                  {% else %}
+                    <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                  {% endif %}
+                {% else %}
+                  <span class="btn btn-disabled">Not Allowed</span>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p>No users found.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% comment %} AJAX {% endcomment %}
+  <script src="{% static 'users/js/manage_users.js' %}"></script>
+{% endblock %}

@@ -9,15 +9,15 @@ from datetime import timedelta
 from users.models import User
 from django.core.validators import MinValueValidator
 
-# 
+#
 class HazardType(models.TextChoices):
     EARTHQUAKE = 'earthquake', 'Earthquake'
     FLOOD = 'flood', 'Flood'
     TORNADO = 'tornado', 'Tornado'
     FIRE = 'fire', 'Fire'
-    STORM = 'storm', 'Storm'    
+    STORM = 'storm', 'Storm'
 
-# 
+#
 class Alert(models.Model):
 
     description = models.TextField(
@@ -25,8 +25,6 @@ class Alert(models.Model):
     location = models.PointField(
         geography=True, help_text="2D geographic location of the alert.")
     effect_radius = models.PositiveIntegerField(
-        # null=True,
-        # blank=True,
         help_text="Radius of effect in meters"
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,6 +52,10 @@ class Alert(models.Model):
         db_index=True,
         help_text="Type of hazard."
     )
+    
+    # Soft Delete Field
+    is_active = models.BooleanField(
+        default=True, help_text="Soft-delete flag. If False, the alert is considered deleted.")
 
     # ContentType Fields for Hazard-Specific Models
     content_type = models.ForeignKey(
@@ -61,24 +63,21 @@ class Alert(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True)
     hazard_details = GenericForeignKey('content_type', 'object_id')
 
-    # Soft Delete Field
-    is_active = models.BooleanField(
-        default=True, help_text="Soft-delete flag. If False, the alert is considered deleted.")
 
     def save(self, *args, **kwargs):
         """
-        Overriding the save method to:
-         - Recalculate deletion_time if it's a new record, or if hazard_type changed, or if deletion_time is not set.
+         - Recalculate deletion_time if it's a new record, 
+         or if hazard_type changed, or if deletion_time is not set.
         """
         if not self.effect_radius:
             self.effect_radius = {
-                'earthquake': 50000, 
+                'earthquake': 50000,
                 'flood': 10000,
                 'tornado': 5000,
                 'fire': 5000,
                 'storm': 50000
             }.get(self.hazard_type)
-        
+
         base_times = {
             'earthquake': timedelta(days=2),
             'flood': timedelta(days=10),
@@ -98,7 +97,6 @@ class Alert(models.Model):
             )
             hazard_type_changed = (old_hazard_type != self.hazard_type)
         else:
-            # No primary key => new object => hazard type not previously set
             hazard_type_changed = False
 
         # Decide if we need to recalculate deletion_time
@@ -144,7 +142,7 @@ class Flood(models.Model):
         return f"Flood (Water Level: {self.water_level}m, Flash Flood: {self.is_flash_flood})"
 
 
-# 
+#
 class Tornado(models.Model):
     wind_speed = models.DecimalField(
         max_digits=5, decimal_places=2, help_text="Wind speed in km/h.",
@@ -155,7 +153,7 @@ class Tornado(models.Model):
     def __str__(self):
         return f"Tornado (Wind Speed: {self.wind_speed} km/h)"
 
-
+# 
 class Fire(models.Model):
     affected_area = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="Affected area in square kilometers.")
@@ -167,7 +165,7 @@ class Fire(models.Model):
     def __str__(self):
         return f"Fire (Affected Area: {self.affected_area} sq km, Contained: {self.is_contained})"
 
-
+# 
 class Storm(models.Model):
     wind_speed = models.DecimalField(
         max_digits=5, decimal_places=2, help_text="Wind speed in km/h.")
