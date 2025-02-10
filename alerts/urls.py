@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import (AlertsView, CreateAlertView,
+from .views import (ManageAlertsView, CreateAlertView,
                     HomeView, AlertGeoJsonListView, AlertsPaginatedView)
 
 
@@ -10,7 +10,7 @@ urlpatterns = [
     path('geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
     
     # Alerts webpage endpoint
-    path('alerts/', AlertsView.as_view(), name='alerts_view'),
+    path('manage_alerts/', ManageAlertsView.as_view(), name='manage_alerts'),
     path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
     path('paginated_alerts/', AlertsPaginatedView.as_view(), name='paginated_alert'),
     

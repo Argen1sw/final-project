@@ -44,8 +44,8 @@ class HomeView(TemplateView):
         return context
 
 
-class AlertsView(LoginRequiredMixin, TemplateView):
-    template_name = 'alerts/alerts.html'
+class ManageAlertsView(LoginRequiredMixin, TemplateView):
+    template_name = 'alerts/manage_alerts.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -91,7 +91,7 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                hazard_type=data.get('hazard_type', 'storm'),  # Fallback Storm
+                hazard_type=data.get('hazard_type', 'storm'), 
                 reported_by=current_user,
                 source_url=data.get('source_url', None),
                 country=address.get('country', ''),
@@ -124,8 +124,7 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         except Exception as e:
             return Response({"error": f"Error creating Alert: {str(e)}"}, status=400)
 
-# View to return paginated alerts data 
-# (optionally filtered by a search query) in JSON format
+# View to return paginated alerts data in JSON format
 class AlertsPaginatedView(APIView):
 
     def get(self, request, *args, **kwargs):

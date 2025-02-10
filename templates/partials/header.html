@@ -4,7 +4,7 @@
     
     {# Check if the user is authenticated and check the role #}
     {% if user.is_authenticated %}
-      <a href="{% url 'alerts_view' %}">Manage Alerts</a>
+      <a href="{% url 'manage_alerts' %}">Manage Alerts</a>
       {% if user.is_ambassador or user.is_admin %}
         <a href="{% url 'manage_users' %}">Manage Users</a>
       {% endif %}

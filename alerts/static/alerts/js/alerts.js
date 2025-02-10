@@ -279,7 +279,6 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 });
 
 
-// ------------------ All this event listener could be in a separate JS file --------------
 // Pagination and Search functionality for alerts list
 document.addEventListener("DOMContentLoaded", function() {
   // Initialize currentPage and totalPages based on rendered data (DOMcontentLoaded)
