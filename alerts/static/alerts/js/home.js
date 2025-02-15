@@ -1,4 +1,3 @@
-// home.js
 // imports:
 // import { fetchAlerts } from "./map_util.js";
 

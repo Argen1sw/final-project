@@ -1,5 +1,3 @@
-// users/js/manage_users.js
-
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
     let cookieValue = null;
