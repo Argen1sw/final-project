@@ -6,7 +6,7 @@ from django.contrib.auth.views import LogoutView
 
 # Local Import
 from .views import (CustomLoginView, UserRegisterView, ManageUsersView,
-                    ManageUsersPaginatedView, suspend_user, unsuspend_user)
+                    ManageUsersPaginatedView, suspendUnsuspendUser)
 
 urlpatterns = [
     path('register/', UserRegisterView.as_view(), name='register'),
@@ -16,7 +16,12 @@ urlpatterns = [
     path('paginated_manage_users/', ManageUsersPaginatedView.as_view(),
          name='paginated_manager_users'),
 
-    path('suspend_user/<int:user_id>/', suspend_user, name='suspend_user'),
-    path('unsuspend_user/<int:user_id>/',
-         unsuspend_user, name='unsuspend_user'),
+
+    # Testing endpoint
+    path('suspend_unsuspend_user/<int:user_id>/',
+         suspendUnsuspendUser.as_view(), name='suspend_unsuspend_user'),
+
+    # path('suspend_user/<int:user_id>/', suspend_user, name='suspend_user'),
+    # path('unsuspend_user/<int:user_id>/',
+    #      unsuspend_user, name='unsuspend_user'),
 ]

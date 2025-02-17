@@ -1,7 +1,7 @@
 # Python Imports
 
 # Django Imports
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView
 from django.views.generic.edit import CreateView
@@ -10,10 +10,16 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator
+from rest_framework.views import APIView
+from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework import status
+from django.http import HttpResponseForbidden
 
 # Local Imports
 from .forms import RegisterForm, LoginForm
 from .models import User
+
 
 # TODO:
 # - Add email verification
@@ -105,14 +111,14 @@ class ManageUsersView(LoginRequiredMixin, TemplateView):
         context["page_obj"] = page_obj
         return context
 
-from rest_framework.views import APIView
-from django.db.models import Q
-from rest_framework.response import Response
-from rest_framework import status
-
 class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
     """
+    View class that handles user management.
     
+    * Only admin and ambassador users can access this view.
+    * Admin users can manage all users.
+    * Ambassador users can only manage normal users.
+    * This view returns a JSON response for pagination purposes.
     """
     
     def dispatch(self, request, *args, **kwargs):
@@ -129,7 +135,9 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
 
     def get(self, request, *args, **kwargs):
         """
-
+        Get all users if not search Q provided and paginate the users.
+        
+        * The user can search for a user by username or email.
         """
         user_type = request.user.user_type
         
@@ -138,9 +146,9 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
             users = User.objects.filter(
                 Q(username__icontains=search_query) |
                 Q(email__icontains=search_query)
-            ).order_by("-user_type")
+            ).order_by("-date_joined")
         else:
-            users = User.objects.all().order_by("-user_type")
+            users = User.objects.all().order_by("-date_joined")
             
         # Paginate the users
         paginator = Paginator(users, 2)
@@ -169,73 +177,111 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
             "has_next": page_obj.has_next(),
             "has_previous": page_obj.has_previous()
         }, status=status.HTTP_200_OK)
+
+class suspendUnsuspendUser(LoginRequiredMixin, APIView):
+    """
+    suspend or unsuspend a user based on the user_id.
+    
+    * Only admin and ambassador users can access this view.
+    * Admin users can manage all users.
+    * Ambassador users can only manage normal users.
+    """
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check if the user is an admin or ambassador.
+        """
+        if not request.user.is_admin() and not request.user.is_ambassador():
+            messages.error(
+                request,
+                "You do not have permission to use this view."
+            )
+            return redirect("home")
+        return super().dispatch(request, *args, **kwargs)
+    
+    
+    def get(self, request, *arg, **args):
+        """
+        get the user_id from the request and suspend or unsuspend the user.
+        """
+        user_id = args.get("user_id")
+        print(user_id)
+        user = get_object_or_404(User, id=user_id)
         
+        if request.user.is_admin():
+            pass
+        elif request.user.is_ambassador():
+            if not user.is_normal_user():
+                return HttpResponseForbidden("You are not allowed to suspend this user. Contact an admin.")
+        else:
+            return HttpResponseForbidden("You are not allowed to perform this action.")
         
+        if user.is_suspended:
+            user.is_suspended = False
+            user.save()
+            messages.success(request, f"User {user.username} has been unsuspended.")
+        else:
+            user.is_suspended = True
+            user.save()
+            messages.info(request, f"User {user.username} has been suspended.")
+        return redirect("manage_users")    
 
 
 
 
 
-# Improve the code below: Use class-based views and Django"s built-in decorators
-# ------------------------------------------------------------------------------
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponseForbidden
 
+# ------------------- Old Code -------------------
 
-# NEXT:
-# Create
+# @login_required
+# def suspend_user(request, user_id):
+#     # Retrieve the target user
+#     target_user = get_object_or_404(User, id=user_id)
 
-@login_required
-def suspend_user(request, user_id):
-    # Retrieve the target user
-    target_user = get_object_or_404(User, id=user_id)
+#     # Check permissions
+#     if request.user.is_admin():
+#         # Admin can manage any user
+#         pass
+#     elif request.user.is_ambassador():
+#         # Ambassadors can only manage normal users
+#         if not target_user.is_normal_user():
+#             return HttpResponseForbidden("You are not allowed to suspend this user.")
+#     else:
+#         return HttpResponseForbidden("You are not allowed to perform this action.")
 
-    # Check permissions
-    if request.user.is_admin():
-        # Admin can manage any user
-        pass
-    elif request.user.is_ambassador():
-        # Ambassadors can only manage normal users
-        if not target_user.is_normal_user():
-            return HttpResponseForbidden("You are not allowed to suspend this user.")
-    else:
-        return HttpResponseForbidden("You are not allowed to perform this action.")
+#     # Mark the user as suspended
+#     if not target_user.is_suspended:
+#         target_user.is_suspended = True
+#         target_user.save()
+#         messages.success(request, f"User {target_user.username} has been suspended.")
+#     else:
+#         messages.info(request, f"User {target_user.username} is already suspended.")
 
-    # Mark the user as suspended
-    if not target_user.is_suspended:
-        target_user.is_suspended = True
-        target_user.save()
-        messages.success(request, f"User {target_user.username} has been suspended.")
-    else:
-        messages.info(request, f"User {target_user.username} is already suspended.")
+#     # Redirect back to the manage users page (update the URL name as needed)
+#     return redirect("manage_users")
 
-    # Redirect back to the manage users page (update the URL name as needed)
-    return redirect("manage_users")
+# @login_required
+# def unsuspend_user(request, user_id):
+#     # Retrieve the target user
+#     target_user = get_object_or_404(User, id=user_id)
 
-@login_required
-def unsuspend_user(request, user_id):
-    # Retrieve the target user
-    target_user = get_object_or_404(User, id=user_id)
+#     # Check permissions
+#     if request.user.is_admin():
+#         # Admin can manage any user
+#         pass
+#     elif request.user.is_ambassador():
+#         # Ambassadors can only manage normal users
+#         if not target_user.is_normal_user():
+#             return HttpResponseForbidden("You are not allowed to unsuspend this user.")
+#     else:
+#         return HttpResponseForbidden("You are not allowed to perform this action.")
 
-    # Check permissions
-    if request.user.is_admin():
-        # Admin can manage any user
-        pass
-    elif request.user.is_ambassador():
-        # Ambassadors can only manage normal users
-        if not target_user.is_normal_user():
-            return HttpResponseForbidden("You are not allowed to unsuspend this user.")
-    else:
-        return HttpResponseForbidden("You are not allowed to perform this action.")
+#     # Mark the user as not suspended
+#     if target_user.is_suspended:
+#         target_user.is_suspended = False
+#         target_user.save()
+#         messages.success(request, f"User {target_user.username} has been unsuspended.")
+#     else:
+#         messages.info(request, f"User {target_user.username} is not suspended.")
 
-    # Mark the user as not suspended
-    if target_user.is_suspended:
-        target_user.is_suspended = False
-        target_user.save()
-        messages.success(request, f"User {target_user.username} has been unsuspended.")
-    else:
-        messages.info(request, f"User {target_user.username} is not suspended.")
-
-    # Redirect back to the manage users page (update the URL name as needed)
-    return redirect("manage_users")
+#     # Redirect back to the manage users page (update the URL name as needed)
+#     return redirect("manage_users")

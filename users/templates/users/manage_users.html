@@ -46,20 +46,18 @@
               {% if request.user.is_admin %}
                 <!-- Admin can manage all users -->
                 {% if user.is_suspended %}
-                  <button type="button" data-action="unsuspend" class"btn btn-unsuspend">Unsuspend</button>
-                  {% comment %} <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a> {% endcomment %}
+                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
                 {% else %}
-                  <button type="button" data-action="suspend" class"btn btn-unsuspend">Suspend</button>
-                  {% comment %} <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a> {% endcomment %}
+                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
                 {% endif %}
 
               {% elif request.user.is_ambassador %}
                 <!-- Ambassadors can only manage normal users -->
                 {% if user.is_normal_user %}
                   {% if user.is_suspended %}
-                    <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
                   {% else %}
-                    <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
                   {% endif %}
                 {% else %}
                   <span class="btn btn-disabled">Not Allowed</span>

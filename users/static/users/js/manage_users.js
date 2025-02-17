@@ -1,55 +1,12 @@
 // Wait for the entire DOM to be fully loaded before running the script
 document.addEventListener("DOMContentLoaded", function() {
-  document.querySelectorAll('.btn-toggle-suspend').forEach(function(button) {
-    button.addEventListener('click', function() {
-      let userId = button.getAttribute('data-user-id');
-      let url = `/toggle_suspend_user/${userId}/`; 
-      
-      // Make the AJAX request to the server
-      fetch(url, {
-        method: 'POST',
-        headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-        },
-      })
-      // Parse the JSON response
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      // Handle the JSON data
-      .then(data => {
-        // Update the button text and suspended status display based on the new state
-        if (data.is_suspended) {
-          button.textContent = 'Unsuspend';
-          document.querySelector(`#user-${userId} .suspended-status`).textContent = 'Yes';
-        } else {
-          button.textContent = 'Suspend';
-          document.querySelector(`#user-${userId} .suspended-status`).textContent = 'No';
-        }
-        alert(data.message);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while updating the user status.');
-      });
-    });
-  });
 
-
-  // TODO:
-  // Add the pagination functionality down here
-  // Add event listeners to the pagination buttons
-  // Initialize currentPage and totalPages based on rendered data (DOMcontentLoaded)
   let currentPage = parseInt(document.querySelector('#current-page').innerText.match(/\d+/)[0]);
   let totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
 
   let searchQuery = "";
 
+  // Function to fetch a page of users from the server and optional search term
   function fetchPage(page) {
     let url = `/paginated_manage_users/?page=${page}`;
     if (searchQuery) {
@@ -86,28 +43,26 @@ document.addEventListener("DOMContentLoaded", function() {
           // Append the user details div to the user list div
           userListDiv.appendChild(userDetailsDiv);
 
-          // 
+          // Create the user actions div
           const userActionsDiv = document.createElement('div');
           userActionsDiv.classList.add('user-actions');
           
-          // I need to check if the user is admin or ambassador
-          // Then I will add the appropriate permissions to suspend users
-          // Admins can suspend ambassadors and ambassadors can suspend users
-          // Admins can suspend ambassadors and users
           const unsuspendButton = document.createElement('a');
           const suspendButton = document.createElement('a');
+
+          // Check if the user is an admin or ambassador for the appropriate actions
           if (data.user_type === 3){ // 3 === admin
             if (user.is_suspended) {
               // const unsuspendButton = document.createElement('a');
               unsuspendButton.textContent = 'Unsuspend'
-              unsuspendButton.href = '/unsuspend_user/' + user.id + '/';
+              unsuspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
               unsuspendButton.classList.add('btn', 'btn-unsuspend');
               userActionsDiv.appendChild(unsuspendButton);
             }
             else{
               // const suspendButton = document.createElement('a');
               suspendButton.textContent = 'Suspend'
-              suspendButton.href = '/suspend_user/' + user.id + '/';
+              suspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
               suspendButton.classList.add('btn', 'btn-suspend');
               userActionsDiv.appendChild(suspendButton);
             }
@@ -116,13 +71,13 @@ document.addEventListener("DOMContentLoaded", function() {
             if (user.user_type === 'normal user'){
               if (user.is_suspended) {
                 // const unsuspendButton = document.createElement('a');
-                unsuspendButton.href = '/unsuspend_user/' + user.id + '/';
+                unsuspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
                 unsuspendButton.classList.add('btn btn-unsuspend');
                 userActionsDiv.appendChild(unsuspendButton);
               }
               else{
                 // const suspendButton = document.createElement('a');
-                suspendButton.href = '/suspend_user/' + user.id + '/';
+                suspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
                 suspendButton.classList.add('btn btn-suspend');
                 userActionsDiv.appendChild(suspendButton);
               }
@@ -137,8 +92,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
           // Append the user actions div to the user list div
           userListDiv.appendChild(userActionsDiv);
-
-
+          // Append the user list div to the users list
           usersList.appendChild(userListDiv);
         });
 
@@ -180,6 +134,12 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
+  document.getElementById("last-page").addEventListener("click", function() {
+    if (currentPage < totalPages) {
+      fetchPage(totalPages);
+    }
+  });
+
   // Search functionality: Listen for inputs event the search field
   let debounceTimeout;
   document.getElementById("search-input").addEventListener("input", function(e) {
@@ -195,13 +155,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 500);
 
     fetchPage(1);
-});
+  });
+  
+  // Initialize button states on page load
+  updatePaginationControls(currentPage, totalPages);
 
 
 });
-
-
-
 
 
 
@@ -220,3 +180,51 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+
+
+
+
+// -------------------------------------------------------------------------
+// Could be use in the future to toggle suspend users without a page refresh
+// aka AJAX request fully dynamic
+// -------------------------------------------------------------------------
+
+// document.querySelectorAll('.btn-toggle-suspend').forEach(function(button) {
+  //   button.addEventListener('click', function() {
+  //     let userId = button.getAttribute('data-user-id');
+  //     let url = `/toggle_suspend_user/${userId}/`; 
+      
+  //     // Make the AJAX request to the server
+  //     fetch(url, {
+  //       method: 'POST',
+  //       headers: {
+  //       'X-CSRFToken': getCookie('csrftoken'),
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json'
+  //       },
+  //     })
+  //     // Parse the JSON response
+  //     .then(response => {
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       return response.json();
+  //     })
+  //     // Handle the JSON data
+  //     .then(data => {
+  //       // Update the button text and suspended status display based on the new state
+  //       if (data.is_suspended) {
+  //         button.textContent = 'Unsuspend';
+  //         document.querySelector(`#user-${userId} .suspended-status`).textContent = 'Yes';
+  //       } else {
+  //         button.textContent = 'Suspend';
+  //         document.querySelector(`#user-${userId} .suspended-status`).textContent = 'No';
+  //       }
+  //       alert(data.message);
+  //     })
+  //     .catch(error => {
+  //       console.error('Error:', error);
+  //       alert('An error occurred while updating the user status.');
+  //     });
+  //   });
+  // });
