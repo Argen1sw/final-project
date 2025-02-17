@@ -351,7 +351,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("last-page").disabled = (page === numPages);
   }
 
-
   // Event listeners for pagination buttons
   document.getElementById("first-page").addEventListener("click", function() {
     if (currentPage > 1) {

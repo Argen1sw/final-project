@@ -25,8 +25,10 @@
     <!-- Users List -->
     <div class="users-container">
       <h2 class="section-title">Users List</h2>
+      
+      <!-- Users List -->
       <div id="usersList">
-        {% for user in users %}
+        {% for user in page_obj %}
           <div class="user-item">
             <div class="user-details">
               <strong>Username:</strong> {{ user.username }}<br>
@@ -40,7 +42,34 @@
               <strong>Account Suspended:</strong> {{ user.is_suspended|yesno:"Yes,No" }}<br>
             </div>
             <div class="user-actions">
+
               {% if request.user.is_admin %}
+                <!-- Admin can manage all users -->
+                {% if user.is_suspended %}
+                  <button type="button" data-action="unsuspend" class"btn btn-unsuspend">Unsuspend</button>
+                  {% comment %} <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a> {% endcomment %}
+                {% else %}
+                  <button type="button" data-action="suspend" class"btn btn-unsuspend">Suspend</button>
+                  {% comment %} <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a> {% endcomment %}
+                {% endif %}
+
+              {% elif request.user.is_ambassador %}
+                <!-- Ambassadors can only manage normal users -->
+                {% if user.is_normal_user %}
+                  {% if user.is_suspended %}
+                    <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                  {% else %}
+                    <a href="{% url 'suspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                  {% endif %}
+                {% else %}
+                  <span class="btn btn-disabled">Not Allowed</span>
+                {% endif %}
+              {% endif %}
+
+
+
+
+              {% comment %} {% if request.user.is_admin %}
                 <!-- Admin can manage all users -->
                 {% if user.is_suspended %}
                   <a href="{% url 'unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
@@ -59,13 +88,25 @@
                 {% else %}
                   <span class="btn btn-disabled">Not Allowed</span>
                 {% endif %}
-              {% endif %}
+              {% endif %} {% endcomment %}
             </div>
           </div>
         {% empty %}
           <p>No users found.</p>
         {% endfor %}
       </div>
+      
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <button id="first-page">First</button>
+        <button id="prev-page">Previous</button>
+        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <button id="next-page">Next</button>
+        <button id="last-page">Last</button>
+      </div>
+
     </div>
   </div>
 

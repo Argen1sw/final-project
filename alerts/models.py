@@ -116,7 +116,6 @@ class Alert(models.Model):
     def __str__(self):
         return f"{self.hazard_type} - {self.description[:50]}"
 
-
 #
 class Earthquake(models.Model):
     magnitude = models.DecimalField(
@@ -140,7 +139,6 @@ class Flood(models.Model):
 
     def __str__(self):
         return f"Flood (Water Level: {self.water_level}m, Flash Flood: {self.is_flash_flood})"
-
 
 #
 class Tornado(models.Model):
@@ -176,3 +174,6 @@ class Storm(models.Model):
 
     def __str__(self):
         return f"Storm (Category: {self.storm_category}, Wind Speed: {self.wind_speed} km/h)"
+
+
+

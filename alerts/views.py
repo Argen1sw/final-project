@@ -1,4 +1,3 @@
-# PEP8 Checked
 # Standard Library Imports
 import logging
 
@@ -14,12 +13,10 @@ from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
 # Local Imports
 from .serializers import AlertGeoSerializer
 from .models import Alert
 
-# Idk what is this for yet
 logger = logging.getLogger(__name__)
 
 # View to return all active alerts in GeoJSON format
@@ -30,14 +27,14 @@ class AlertGeoJsonListView(generics.ListAPIView):
     queryset = Alert.objects.filter(is_active=True)
     serializer_class = AlertGeoSerializer
 
- 
+
 class HomeView(TemplateView):
     template_name = "alerts/home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         alerts = Alert.objects.all().order_by('-created_at')
-        paginator = Paginator(alerts, 4) 
+        paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
         context['page_obj'] = page_obj
@@ -50,7 +47,7 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         alerts = Alert.objects.all().order_by('-created_at')
-        paginator = Paginator(alerts, 4) 
+        paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
         context['page_obj'] = page_obj
@@ -91,7 +88,7 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                hazard_type=data.get('hazard_type', 'storm'), 
+                hazard_type=data.get('hazard_type', 'storm'),
                 reported_by=current_user,
                 source_url=data.get('source_url', None),
                 country=address.get('country', ''),
@@ -130,7 +127,7 @@ class AlertsPaginatedView(APIView):
     def get(self, request, *args, **kwargs):
         # Grab the optional search term from the query string
         search_query = request.GET.get('q', '')
-        
+
         if search_query:
             alerts = Alert.objects.filter(
                 Q(description__icontains=search_query) |
@@ -141,11 +138,11 @@ class AlertsPaginatedView(APIView):
             ).order_by('-created_at')
         else:
             alerts = Alert.objects.all().order_by('-created_at')
-        
+
         paginator = Paginator(alerts, 4)
         page_number = request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
-        
+
         alerts_data = []
         for alert in page_obj:
             alerts_data.append({
@@ -173,9 +170,6 @@ class AlertsPaginatedView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-
-
-
 # def resources_view(request):
 #     return render(request, 'alerts/resources.html')
 
@@ -186,4 +180,3 @@ class AlertsPaginatedView(APIView):
 
 # def about_view(request):
 #     return render(request, 'alerts/about.html')
-
