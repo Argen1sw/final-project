@@ -17,18 +17,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .serializers import AlertGeoSerializer
 from .models import Alert
 
-logger = logging.getLogger(__name__)
-
-# View to return all active alerts in GeoJSON format
-class AlertGeoJsonListView(generics.ListAPIView):
-    """
-    Returns all active alerts in GeoJSON format.
-    """
-    queryset = Alert.objects.filter(is_active=True)
-    serializer_class = AlertGeoSerializer
-
 
 class HomeView(TemplateView):
+    """
+    View class for the home page.
+
+    * Displays the home page with the latest alerts.
+    * Paginates the alerts for the list of alerst element.
+    """
     template_name = "alerts/home.html"
 
     def get_context_data(self, **kwargs):
@@ -42,6 +38,12 @@ class HomeView(TemplateView):
 
 
 class ManageAlertsView(LoginRequiredMixin, TemplateView):
+    """
+    View class for the manage alerts page.
+
+    * Displays the manage alerts page with all alerts.
+    * Paginates the alerts for the list of alerts element.
+    """
     template_name = 'alerts/manage_alerts.html'
 
     def get_context_data(self, **kwargs):
@@ -54,8 +56,32 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class AlertGeoJsonListView(generics.ListAPIView):
+    """
+    Returns all active alerts in GeoJSON format.
+
+    * Alerts are filtered by the `is_active` field.
+    """
+    queryset = Alert.objects.filter(is_active=True)
+    serializer_class = AlertGeoSerializer
+
+
 class CreateAlertView(LoginRequiredMixin, APIView):
+    """
+    API View class to create a new alert.
+
+    * Only authenticated users can create alerts.
+    * Alerts are created using the POST method.
+    * Returns the alert data in JSON format for the AJAX request.
+    """
+
     def post(self, request, *args, **kwargs):
+        """
+        Create a new alert.
+
+        * Validates the input data.
+        * Reverse geocodes the latitude and longitude.
+        """
         data = request.data
 
         # Validate input data
@@ -64,12 +90,6 @@ class CreateAlertView(LoginRequiredMixin, APIView):
 
         if lat is None or lng is None:
             return Response({"error": "Latitude and Longitude are required."}, status=400)
-
-        try:
-            lat = float(lat)
-            lng = float(lng)
-        except ValueError:
-            return Response({"error": "Latitude and Longitude must be valid numbers."}, status=400)
 
         # Reverse Geocoding
         try:
@@ -88,7 +108,7 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                hazard_type=data.get('hazard_type', 'storm'),
+                hazard_type=data.get('hazard_type'),
                 reported_by=current_user,
                 source_url=data.get('source_url', None),
                 country=address.get('country', ''),
@@ -96,7 +116,7 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 county=address.get('county', '')
             )
 
-            # Build response
+            # Build response data to dynamically update the map and list of alerts
             return Response({
                 "id": alert.id,
                 "description": alert.description,
@@ -121,10 +141,23 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         except Exception as e:
             return Response({"error": f"Error creating Alert: {str(e)}"}, status=400)
 
-# View to return paginated alerts data in JSON format
+
 class AlertsPaginatedView(APIView):
+    """
+    Paginated view for the alerts in the alert list element.
+
+    * Returns the alerts in JSON format.
+    * Supports search queries.
+    * Paginates the alerts.
+    """
 
     def get(self, request, *args, **kwargs):
+        """
+        Get all alerts if no search query is provided and paginate the alerts.
+
+        * The user can search for an alert by description, hazard type, 
+        country, city, or county.
+        """
         # Grab the optional search term from the query string
         search_query = request.GET.get('q', '')
 

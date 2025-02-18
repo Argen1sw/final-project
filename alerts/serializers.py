@@ -1,7 +1,5 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from rest_framework import serializers
 from .models import Alert
-from django.contrib.gis.geos import Point
 
 
 class AlertGeoSerializer(GeoFeatureModelSerializer):
