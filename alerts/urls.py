@@ -4,17 +4,20 @@ from .views import (ManageAlertsView, CreateAlertView,
 
 
 urlpatterns = [
+    
+    # Home page path endpoint
     path('', HomeView.as_view(), name='home'),
 
-    # Endpoint that returns all the alerts in JSON format
+    # Manage Alerts page Path endpoint 
+    path('manage_alerts/', ManageAlertsView.as_view(), name='manage_alerts'),
+
+    # Path endpoint for creating alerts (Used for the form in the map)
+    path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
+
+    # Path endpoint for the  all Alerts in GeoJSON format (Used for the map)
     path('geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
 
-
-    # Alerts webpage endpoint
-    path('manage_alerts/', ManageAlertsView.as_view(), name='manage_alerts'),
-    path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
+    # Path endpoint for paginated alerts (Used for AJAX)
     path('paginated_alerts/', AlertsPaginatedView.as_view(), name='paginated_alert'),
 
-    # path('resources/', resources_view, name='resources'),
-    # path('guide_example/', guide_example_view, name='guide'),
 ]
