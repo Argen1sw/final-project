@@ -1,4 +1,7 @@
+# Standard library imports
 from django.urls import path, include
+
+# Local Imports
 from .views import (ManageAlertsView, CreateAlertView,
                     HomeView, AlertGeoJsonListView, AlertsPaginatedView)
 
@@ -19,5 +22,5 @@ urlpatterns = [
 
     # Path endpoint for paginated alerts (Used for AJAX)
     path('paginated_alerts/', AlertsPaginatedView.as_view(), name='paginated_alert'),
-
+    
 ]

@@ -1,9 +1,12 @@
+# Django imports
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-
+    """
+    
+    """
     USER_TYPE_CHOICES = (
         (1, 'normal user'),
         (2, 'ambassador'),

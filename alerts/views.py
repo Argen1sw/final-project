@@ -203,6 +203,11 @@ class AlertsPaginatedView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+
+#--------------------------------------------------------
+# ---------------------Old code--------------------------
+#--------------------------------------------------------
+
 # def resources_view(request):
 #     return render(request, 'alerts/resources.html')
 

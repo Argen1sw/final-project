@@ -45,7 +45,7 @@ class Alert(models.Model):
         default=0, help_text="Number of positive votes.")
     negative_votes = models.PositiveIntegerField(
         default=0, help_text="Number of negative votes.")
-
+    
     hazard_type = models.CharField(
         max_length=20,
         choices=HazardType.choices,
