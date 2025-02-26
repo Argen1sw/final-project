@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}EnviroAlerts | profile {% endblock %}
+
+{% block content %}
+    <h2>User Profile</h2>
+    <div class="profile-container">
+        <div class="profile-info">
+            <h3>username: {{ user.username }}</h3>
+            <p>Email: {{ user.email }}</p>
+            <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+            <p>Date Joined: {{ user.date_joined }}</p>
+            <p>User BIO: {{ user.bio }}</p>
+            <p>Alerts Created: {{ user.alerts_created}}</p>
+            <p>Alerts Verfied: {{ user.alerts_verified}}</p>
+        </div>
+
+        {% comment %} Edit profile could be a pop-up that opens a form to change some of the entries  {% endcomment %}
+        <div class="profile-actions">
+            <button>Edit Profile</button>
+        </div>
+    </div>
+
+{% endblock%}

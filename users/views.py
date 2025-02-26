@@ -20,12 +20,8 @@ from django.http import HttpResponseForbidden
 from .forms import RegisterForm, LoginForm
 from .models import User
 
-# TODO:
-# - Add email verification
-# - Add password reset
-# - Add Google login
-# - Add messages display to the login page and registration page
 
+# - Add messages display to the login page and registration page
 
 class UserRegisterView(CreateView):
     """
@@ -230,58 +226,13 @@ class suspendUnsuspendUser(LoginRequiredMixin, APIView):
         return redirect("manage_users")
 
 
-# ------------------- Old Code -------------------
+class userProfileView(LoginRequiredMixin, TemplateView):
+    template_name = "users/user_profile.html"
+    # model = User
+    
+# class editUserProfileView(LoginRequiredMixin, TemplateView):
+#     template_name = "users/edit_user_profile.html"
+#     # model = User
+    
 
-# @login_required
-# def suspend_user(request, user_id):
-#     # Retrieve the target user
-#     target_user = get_object_or_404(User, id=user_id)
-
-#     # Check permissions
-#     if request.user.is_admin():
-#         # Admin can manage any user
-#         pass
-#     elif request.user.is_ambassador():
-#         # Ambassadors can only manage normal users
-#         if not target_user.is_normal_user():
-#             return HttpResponseForbidden("You are not allowed to suspend this user.")
-#     else:
-#         return HttpResponseForbidden("You are not allowed to perform this action.")
-
-#     # Mark the user as suspended
-#     if not target_user.is_suspended:
-#         target_user.is_suspended = True
-#         target_user.save()
-#         messages.success(request, f"User {target_user.username} has been suspended.")
-#     else:
-#         messages.info(request, f"User {target_user.username} is already suspended.")
-
-#     # Redirect back to the manage users page (update the URL name as needed)
-#     return redirect("manage_users")
-
-# @login_required
-# def unsuspend_user(request, user_id):
-#     # Retrieve the target user
-#     target_user = get_object_or_404(User, id=user_id)
-
-#     # Check permissions
-#     if request.user.is_admin():
-#         # Admin can manage any user
-#         pass
-#     elif request.user.is_ambassador():
-#         # Ambassadors can only manage normal users
-#         if not target_user.is_normal_user():
-#             return HttpResponseForbidden("You are not allowed to unsuspend this user.")
-#     else:
-#         return HttpResponseForbidden("You are not allowed to perform this action.")
-
-#     # Mark the user as not suspended
-#     if target_user.is_suspended:
-#         target_user.is_suspended = False
-#         target_user.save()
-#         messages.success(request, f"User {target_user.username} has been unsuspended.")
-#     else:
-#         messages.info(request, f"User {target_user.username} is not suspended.")
-
-#     # Redirect back to the manage users page (update the URL name as needed)
-#     return redirect("manage_users")
+    

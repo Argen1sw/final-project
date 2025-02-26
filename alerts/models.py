@@ -1,25 +1,38 @@
+# Python Imports
 
+# Django Imports
 from django.contrib.gis.db import models
-
-# New modules
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
 from datetime import timedelta
-from users.models import User
 from django.core.validators import MinValueValidator
 
-#
+# Local Imports
+from users.models import User
+
+
 class HazardType(models.TextChoices):
+    """
+    Enum-like class to define the types of hazards.
+    """
     EARTHQUAKE = 'earthquake', 'Earthquake'
     FLOOD = 'flood', 'Flood'
     TORNADO = 'tornado', 'Tornado'
     FIRE = 'fire', 'Fire'
     STORM = 'storm', 'Storm'
 
-#
-class Alert(models.Model):
 
+class Alert(models.Model):
+    """
+    Alert model to store information about alerts.
+
+    * Soft delete mechanism: Instead of permanently deleting the record,
+    mark it as inactive.
+    * If the effect radius is not set, it will be set based on the hazard type.
+    * If the deletion time is not set, it will be calculated based on the hazard type.
+    * If the hazard type is changed, the deletion time will be recalculated.
+    """
     description = models.TextField(
         help_text="A brief description of the alert.")
     location = models.PointField(
@@ -45,14 +58,14 @@ class Alert(models.Model):
         default=0, help_text="Number of positive votes.")
     negative_votes = models.PositiveIntegerField(
         default=0, help_text="Number of negative votes.")
-    
+
     hazard_type = models.CharField(
         max_length=20,
         choices=HazardType.choices,
         db_index=True,
         help_text="Type of hazard."
     )
-    
+
     # Soft Delete Field
     is_active = models.BooleanField(
         default=True, help_text="Soft-delete flag. If False, the alert is considered deleted.")
@@ -62,7 +75,6 @@ class Alert(models.Model):
         ContentType, on_delete=models.SET_NULL, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     hazard_details = GenericForeignKey('content_type', 'object_id')
-
 
     def save(self, *args, **kwargs):
         """
@@ -116,8 +128,13 @@ class Alert(models.Model):
     def __str__(self):
         return f"{self.hazard_type} - {self.description[:50]}"
 
-#
+
 class Earthquake(models.Model):
+    """
+    Model to store information about earthquakes.
+    
+    
+    """
     magnitude = models.DecimalField(
         max_digits=4, decimal_places=2, help_text="Magnitude of the earthquake.")
     depth = models.DecimalField(
@@ -128,8 +145,13 @@ class Earthquake(models.Model):
     def __str__(self):
         return f"Earthquake (Magnitude: {self.magnitude}, Depth: {self.depth} km)"
 
-#
+
 class Flood(models.Model):
+    """
+    Model to store information about floods.
+    
+    
+    """
     water_level = models.DecimalField(
         max_digits=5, decimal_places=2, help_text="Water level in meters.")
     affected_area = models.DecimalField(
@@ -140,8 +162,12 @@ class Flood(models.Model):
     def __str__(self):
         return f"Flood (Water Level: {self.water_level}m, Flash Flood: {self.is_flash_flood})"
 
-#
+
 class Tornado(models.Model):
+    """
+    Model to store information about tornadoes.
+    
+    """
     wind_speed = models.DecimalField(
         max_digits=5, decimal_places=2, help_text="Wind speed in km/h.",
         validators=[MinValueValidator(0)],)
@@ -151,8 +177,12 @@ class Tornado(models.Model):
     def __str__(self):
         return f"Tornado (Wind Speed: {self.wind_speed} km/h)"
 
-# 
+
 class Fire(models.Model):
+    """
+    Model to store information about fires.
+    
+    """
     affected_area = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="Affected area in square kilometers.")
     is_contained = models.BooleanField(
@@ -163,8 +193,12 @@ class Fire(models.Model):
     def __str__(self):
         return f"Fire (Affected Area: {self.affected_area} sq km, Contained: {self.is_contained})"
 
-# 
+
 class Storm(models.Model):
+    """
+    Model to store information about storms.
+    
+    """
     wind_speed = models.DecimalField(
         max_digits=5, decimal_places=2, help_text="Wind speed in km/h.")
     rainfall = models.DecimalField(
@@ -174,6 +208,3 @@ class Storm(models.Model):
 
     def __str__(self):
         return f"Storm (Category: {self.storm_category}, Wind Speed: {self.wind_speed} km/h)"
-
-
-

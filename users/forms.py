@@ -5,6 +5,8 @@ from .models import User
 # Register should include a mechanism that allows user to register
 # with their google account.
 class RegisterForm(UserCreationForm):
+    """
+    """
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
