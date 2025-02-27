@@ -4,8 +4,8 @@ from django.contrib.auth.views import LogoutView
 
 # Local Import
 from .views import (CustomLoginView, UserRegisterView, ManageUsersView,
-                    ManageUsersPaginatedView, suspendUnsuspendUser,
-                    userProfileView)
+                    ManageUsersPaginatedView, SuspendUnsuspendUser,
+                    UserProfileView)
 
 urlpatterns = [
 
@@ -27,10 +27,10 @@ urlpatterns = [
 
     # Suspend/Unsuspend User path endpoint
     path('suspend_unsuspend_user/<int:user_id>/',
-        suspendUnsuspendUser.as_view(), name='suspend_unsuspend_user'),
+        SuspendUnsuspendUser.as_view(), name='suspend_unsuspend_user'),
 
     # User Profile path endpoint
-    path('profile/', userProfileView.as_view(), name='profile')
+    path('profile/', UserProfileView.as_view(), name='profile')
     
     # Edit User Profile path endpoint
     # path('edit_profile/', editUserProfileView.as_view(), 

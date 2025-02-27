@@ -4,7 +4,7 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,7 +17,8 @@ from rest_framework import status
 from django.http import HttpResponseForbidden
 
 # Local Imports
-from .forms import RegisterForm, LoginForm
+from .forms import (RegisterForm, LoginForm,
+                    UserProfileForm, PasswordUpdateForm, EmailUpdateForm)
 from .models import User
 
 
@@ -177,7 +178,7 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
         }, status=status.HTTP_200_OK)
 
 
-class suspendUnsuspendUser(LoginRequiredMixin, APIView):
+class SuspendUnsuspendUser(LoginRequiredMixin, APIView):
     """
     suspend or unsuspend a user based on the user_id.
 
@@ -226,13 +227,72 @@ class suspendUnsuspendUser(LoginRequiredMixin, APIView):
         return redirect("manage_users")
 
 
-class userProfileView(LoginRequiredMixin, TemplateView):
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    """
+    View to handle updating user profile details including password and email.
+    """
+    model = User
+    # https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
+    form_class = UserProfileForm
+    second_form_class = PasswordUpdateForm
+    third_form_class = EmailUpdateForm
     template_name = "users/user_profile.html"
-    # model = User
-    
-# class editUserProfileView(LoginRequiredMixin, TemplateView):
-#     template_name = "users/edit_user_profile.html"
-#     # model = User
-    
 
-    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Adding all three forms to the context for rendering
+        context['update_information'] = self.form_class(instance=self.object)
+        context['update_password'] = self.second_form_class()
+        context['update_email'] = self.third_form_class(instance=self.object)
+
+        return context
+
+    def get_object(self):
+        return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests and processes the appropriate form based 
+        on which submit button was clicked.
+        """
+        self.object = self.get_object()
+
+        if 'update_information' in request.POST:
+            form_class = self.get_form_class()
+            form_name = 'update_information'
+            form = form_class(request.POST, instance=self.object)
+        elif 'update_password' in request.POST:
+            form_class = self.second_form_class
+            form_name = 'update_password'
+            form = form_class(request.POST)
+        else:
+            form_class = self.third_form_class
+            form_name = 'update_email'
+            form = form_class(request.POST, instance=self.object)
+
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        if isinstance(form, self.form_class):
+            form.save()
+        elif isinstance(form, self.second_form_class):
+            form.save()
+        elif isinstance(form, self.third_form_class):
+            form.save()
+            # send email to the user to verify the email
+
+        # Redirect to the profile page after successful update
+        return redirect('profile')
+
+    def form_invalid(self, form):
+        """
+        Called when a form is invalid. Re-render the template with error messages.
+        """
+        return self.render_to_response(self.get_context_data(form=form))

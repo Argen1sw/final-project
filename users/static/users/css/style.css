@@ -214,3 +214,20 @@ p a:hover {
   color: #fff;
   cursor: not-allowed;
 }
+
+/* CSS for user_profile */
+/* --------------------- */
+#profile-form {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -200px;
+  margin-left: -200px;
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+}
