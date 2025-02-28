@@ -42,7 +42,9 @@ class Alert(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    deletion_time = models.DateTimeField(
+    
+    # This is what I need to change
+    soft_deletion_time = models.DateTimeField(
         null=True, blank=True, help_text="Calculated time when this alert expires.")
 
     country = models.CharField(max_length=100, blank=True, null=True)
@@ -78,8 +80,8 @@ class Alert(models.Model):
 
     def save(self, *args, **kwargs):
         """
-         - Recalculate deletion_time if it's a new record, 
-         or if hazard_type changed, or if deletion_time is not set.
+        Recalculate soft_deletion_time if it's a new record, 
+        or if hazard_type changed, or if soft_deletion_time is not set.
         """
         if not self.effect_radius:
             self.effect_radius = {
@@ -111,10 +113,10 @@ class Alert(models.Model):
         else:
             hazard_type_changed = False
 
-        # Decide if we need to recalculate deletion_time
-        if not self.deletion_time or self._state.adding or hazard_type_changed:
+        # Decide if we need to recalculate soft_deletion_time
+        if not self.soft_deletion_time or self._state.adding or hazard_type_changed:
             # Fallback of 1 day if hazard_type is somehow invalid/unknown
-            self.deletion_time = now() + base_times.get(self.hazard_type, timedelta(days=1))
+            self.soft_deletion_time = now() + base_times.get(self.hazard_type, timedelta(days=1))
 
         super().save(*args, **kwargs)
 
