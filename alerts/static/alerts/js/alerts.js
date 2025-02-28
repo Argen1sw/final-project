@@ -25,11 +25,6 @@ const hazardIcons = {
       iconUrl: ICONS.tornado_icon,
       iconSize: [25, 41],
       iconAnchor: [12, 41]
-  }),
-  storm: L.icon({
-      iconUrl: ICONS.storm_icon,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41]
   })
 };
 
@@ -47,7 +42,6 @@ const DEFAULT_RADIUS = {
   flood: 10000,
   tornado: 5000,
   fire: 5000,
-  storm: 50000
 };
 
 let currentCircle = null; // Store reference to temporary circle
@@ -59,7 +53,6 @@ layerGroups = {
   flood: L.layerGroup().addTo(map),
   tornado: L.layerGroup().addTo(map),
   fire: L.layerGroup().addTo(map),
-  storm: L.layerGroup().addTo(map),
   default: L.layerGroup().addTo(map)
 };
 
@@ -182,13 +175,43 @@ document.getElementById('effectRadius').addEventListener('input', function(e) {
 document.getElementById("alertForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
+  // Prepare hazard-specific data
+  var hazardData = {};
+  hazardType =  document.getElementById("hazardType").value;
+
+  if (hazardType === "earthquake") {
+    hazardData = {
+      magnitude: document.getElementById("earthquakeMagnitude").value,
+      depth: document.getElementById("earthquakeDepth").value,
+    };
+  } else if (hazardType === "flood") {
+    hazardData = {
+      severity: document.getElementById("floodSeverity").value,
+      water_level: document.getElementById("floodWaterLevel").value,
+      flashFlood: document.getElementById("flashFlood").checked, 
+    };
+  } else if (hazardType === "tornado") {
+    hazardData = {
+      category: document.getElementById("tornadoCategory").value,
+      damage: document.getElementById("tornadoDamage").value,
+    };
+  } else if (hazardType === "fire") {
+    hazardData = {
+      intensity: document.getElementById("fireIntensity").value,
+      cause: document.getElementById("fireCause").value,
+      isContained: document.getElementById("fireContained").checked,
+    };
+  }
+
   const data = {
     description: document.getElementById("alertDescription").value,
     lat: document.getElementById("alertLat").value,
     lng: document.getElementById("alertLng").value,
     effect_radius: currentCircle.getRadius(),
-    hazard_type: document.getElementById("hazardType").value,
     source_url: document.getElementById("sourceUrl").value,
+    hazard_type: hazardType,
+    hazard_data: hazardData
+    // hazard_type: document.getElementById("hazardType").value,
   };
 
   fetch("/create_alerts/", {
@@ -432,6 +455,30 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   const newRadius = DEFAULT_RADIUS[e.target.value];
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
+
+
+
+  var selected = this.value;
+  var fields = document.querySelectorAll(".hazard-fields");
+
+  fields.forEach(function(el) {
+    el.style.display = "none";
+  });
+
+  // Show the corresponding fields if available
+  if (selected === "earthquake") {
+    document.getElementById("earthquakeFields").style.display = "block";
+  }
+  else if (selected === "flood") {
+    document.getElementById("floodFields").style.display = "block";
+  }
+  else if (selected === "tornado") {
+    document.getElementById("tornadoFields").style.display = "block";
+  }
+  else if (selected === "fire") {
+    document.getElementById("fireFields").style.display = "block";
+  }
+
 });
 
 

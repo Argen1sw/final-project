@@ -12,10 +12,21 @@ from django.core.paginator import Paginator
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 
 # Local Imports
 from .serializers import AlertGeoSerializer
 from .models import Alert
+
+# Simple mapping of hazard types to model names
+# This is a temporary solution and should be replaced with a more robust solution
+# in the future.
+HAZARD_MODEL_MAPPING = {
+    'earthquake': 'Earthquake',
+    'flood': 'Flood',
+    'tornado': 'Tornado',
+    'fire': 'Fire',
+}
 
 
 class HomeView(TemplateView):
@@ -87,7 +98,6 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         # Validate input data
         lat = data.get('lat')
         lng = data.get('lng')
-
         if lat is None or lng is None:
             return Response({"error": "Latitude and Longitude are required."}, status=400)
 
@@ -102,22 +112,45 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         # Automatically set `reported_by` to the logged-in user
         current_user = request.user if request.user.is_authenticated else None
 
+        # Handles the Hazard type 
+        hazard_model_name = data.get('hazard_type')
+        hazard_data = data.get('hazard_data', {})
+        content_type = None
+        object_id = None
+        
+        if hazard_model_name:
+            model_class = HAZARD_MODEL_MAPPING.get(hazard_model_name.lower())
+            if not model_class:
+                return Response({"error": "Invalid hazard type."}, status=400)
+            try:
+                hazard_instance = model_class.objects.create(**hazard_data)
+                content_type = ContentType.objects.get_for_model(model_class)
+                object_id = hazard_instance.id
+            except Exception as e:
+                return Response({"error": f"Error creating Hazard: {str(e)}"}, status=400)
+        
         # Create alert
         try:
             alert = Alert.objects.create(
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                hazard_type=data.get('hazard_type'),
+                
+                # hazard_type=data.get('hazard_type'),
+                
                 reported_by=current_user,
                 source_url=data.get('source_url', None),
                 country=address.get('country', ''),
                 city=address.get('city', address.get('town', '')),
-                county=address.get('county', '')
+                county=address.get('county', ''),
+                
+                # Associated the hazard-specific model with the alert
+                content_type=content_type,
+                object_id=object_id
             )
 
             # Build response data to dynamically update the map and list of alerts
-            return Response({
+            response_data = {
                 "id": alert.id,
                 "description": alert.description,
                 "location": {
@@ -125,7 +158,13 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                     "coordinates": [alert.location.x, alert.location.y]
                 },
                 "effect_radius": alert.effect_radius,
-                "hazard_type": alert.hazard_type,
+                
+                # "hazard_type": alert.hazard_type,
+                "hazard_details": {
+                    "hazard_type": hazard_model_name,
+                    "hazard_data": hazard_data
+                },
+                
                 "reported_by": (
                     str(alert.reported_by)
                     if alert.reported_by else None
@@ -136,7 +175,8 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 "city": alert.city,
                 "county": alert.county,
                 "created_at": alert.created_at
-            }, status=status.HTTP_201_CREATED)
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": f"Error creating Alert: {str(e)}"}, status=400)
