@@ -230,9 +230,10 @@ class SuspendUnsuspendUser(LoginRequiredMixin, APIView):
 class UserProfileView(LoginRequiredMixin, UpdateView):
     """
     View to handle updating user profile details including password and email.
+    More information can be found in the link below:
+    https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
     """
     model = User
-    # https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
     form_class = UserProfileForm
     second_form_class = PasswordUpdateForm
     third_form_class = EmailUpdateForm
@@ -265,7 +266,7 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         elif 'update_password' in request.POST:
             form_class = self.second_form_class
             form_name = 'update_password'
-            form = form_class(request.POST)
+            form = form_class(request.POST, user=request.user)
         else:
             form_class = self.third_form_class
             form_name = 'update_email'
@@ -274,7 +275,7 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         if form.is_valid():
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
         """

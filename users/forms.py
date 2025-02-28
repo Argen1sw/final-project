@@ -10,18 +10,19 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
-        
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         # Query to extract all the users email
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("This email is already in use.")
         return email
-    
+
 # This will need to be extended to be able to accept google login and
 # email as a form of validation too
 class LoginForm(AuthenticationForm):
     pass
+
 
 class UserProfileForm(forms.ModelForm):
     """
@@ -33,12 +34,13 @@ class UserProfileForm(forms.ModelForm):
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 3})
         }
-        
+
+
 class PasswordUpdateForm(forms.Form):
     """
     Form class that handles user password updates.
     """
-    
+    # Fields
     current_password = forms.CharField(
         label="Current Password",
         widget=forms.PasswordInput(),
@@ -54,38 +56,61 @@ class PasswordUpdateForm(forms.Form):
         widget=forms.PasswordInput(),
         required=True
     )
-    
+
     def __init__(self, *args, **kwargs):
+        """
+        Override constructor method that initializes the form.
+        """
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.user = kwargs.get('user')
 
     def clean_current_password(self):
+        """
+        Method that validates the current password.
+        Check link below for more information:
+        https://docs.djangoproject.com/en/5.1/ref/forms/validation/
+        """
         current_password = self.cleaned_data.get('current_password')
+        print(f" from current password {current_password}")
+        print(self.user.check_password(current_password))
         if not self.user.check_password(current_password):
             raise forms.ValidationError("The current password is incorrect.")
         return current_password
 
     def clean_new_password(self):
+        """
+        Method that validates the new password.
+        """
         new_password = self.cleaned_data.get('new_password')
+        print(f" from New password {new_password}")
         if len(new_password) < 8:
-            raise forms.ValidationError("New password must be at least 8 characters long.")
+            raise forms.ValidationError(
+                "New password must be at least 8 characters long.")
         return new_password
 
     def clean_repeat_new_password(self):
+        """
+        Method that validates the repeat new password.
+        """
         repeat_new_password = self.cleaned_data.get('repeat_new_password')
         new_password = self.cleaned_data.get('new_password')
-
+        print(f" from repeat password {repeat_new_password}")
+        
         if repeat_new_password != new_password:
-            raise forms.ValidationError("The new password and repeat password do not match.")
+            raise forms.ValidationError(
+                "The new password and repeat password do not match.")
         return repeat_new_password
 
     def save(self):
+        """
+        Method that saves the new password for the user.
+        """
         # Set the new password for the user
         new_password = self.cleaned_data.get('new_password')
         self.user.set_password(new_password)
         self.user.save()
-    
-    
+
+
 class EmailUpdateForm(forms.ModelForm):
     """
     Form class that handles user email updates.
@@ -93,11 +118,10 @@ class EmailUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email']
-        
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         # Query to extract all the users email
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("This email is already in use.")
         return email
-    
