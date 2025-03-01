@@ -6,21 +6,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
 from datetime import timedelta
-from django.core.validators import MinValueValidator
 
 # Local Imports
 from users.models import User
-
-
-class HazardType(models.TextChoices):
-    """
-    Enum-like class to define the types of hazards.
-    """
-    EARTHQUAKE = 'earthquake', 'Earthquake'
-    FLOOD = 'flood', 'Flood'
-    TORNADO = 'tornado', 'Tornado'
-    FIRE = 'fire', 'Fire'
-    STORM = 'storm', 'Storm'
 
 
 class Alert(models.Model):
@@ -42,7 +30,7 @@ class Alert(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     # This is what I need to change
     soft_deletion_time = models.DateTimeField(
         null=True, blank=True, help_text="Calculated time when this alert expires.")
@@ -61,18 +49,10 @@ class Alert(models.Model):
     negative_votes = models.PositiveIntegerField(
         default=0, help_text="Number of negative votes.")
 
-    hazard_type = models.CharField(
-        max_length=20,
-        choices=HazardType.choices,
-        db_index=True,
-        help_text="Type of hazard."
-    )
-
     # Soft Delete Field
     is_active = models.BooleanField(
         default=True, help_text="Soft-delete flag. If False, the alert is considered deleted.")
 
-    
     # ContentType Fields for Hazard-Specific Models
     content_type = models.ForeignKey(
         ContentType, on_delete=models.SET_NULL, null=True, blank=True)
@@ -83,8 +63,8 @@ class Alert(models.Model):
         """
 
         """
-        hazard_name = self.content_type.model if self.content_type else None        
-        
+        hazard_name = self.content_type.model if self.content_type else None
+
         # Define default values based on the hazard model type
         default_effect_radius = {
             'earthquake': 50000,
@@ -92,7 +72,7 @@ class Alert(models.Model):
             'tornado': 5000,
             'fire': 5000,
             'storm': 50000
-        }.get(self.hazard_type)
+        }
 
         base_times = {
             'earthquake': timedelta(days=2),
@@ -104,8 +84,9 @@ class Alert(models.Model):
 
         if hazard_name:
             if not self.effect_radius:
-                self.effect_radius = default_effect_radius.get(hazard_name, 10000)
-                
+                self.effect_radius = default_effect_radius.get(
+                    hazard_name, 10000)
+
             if not self.soft_deletion_time or self._state.adding:
                 self.soft_deletion_time = now() + base_times.get(hazard_name, timedelta(days=1))
         else:
@@ -132,7 +113,7 @@ class Alert(models.Model):
 class Earthquake(models.Model):
     """
     Model to store information about earthquakes.
-    
+
     * Fields are all optional.
     """
     magnitude = models.DecimalField(
@@ -149,26 +130,24 @@ class Earthquake(models.Model):
 class Flood(models.Model):
     """
     Model to store information about floods.
-    
+
     * Fields are all optional.
     """
-    
+
     SEVERITY_CHOICES = [
         ('low', 'Low'),
         ('moderate', 'Moderate'),
         ('major', 'Major'),
     ]
-    
+
     severity = models.CharField(
-        max_length=20, choices=SEVERITY_CHOICES, blank=True, null=True, 
+        max_length=20, choices=SEVERITY_CHOICES, blank=True, null=True,
         help_text="Severity of the flood."
     )
     water_level = models.DecimalField(
         max_digits=5, decimal_places=2, blank=True, null=True, help_text="Water level in meters.")
     is_flash_flood = models.BooleanField(
         default=False, help_text="Indicates if it is a flash flood.")
-    # affected_area = models.DecimalField(
-    #     max_digits=10, decimal_places=2, blank=True, null=True, help_text="Affected area in square kilometers.")
 
     def __str__(self):
         return f"Flood (Water Level: {self.water_level}m, Flash Flood: {self.is_flash_flood})"
@@ -177,13 +156,10 @@ class Flood(models.Model):
 class Tornado(models.Model):
     """
     Model to store information about tornadoes.
-    
+
     * Fields are all optional.
     """
-    # wind_speed = models.DecimalField(
-    #     max_digits=5, decimal_places=2, blank=True, null=True, help_text="Wind speed in km/h.",
-    #     validators=[MinValueValidator(0)],)
-    CATEGORY_CHOICES =[
+    CATEGORY_CHOICES = [
         ('F0', 'F0'),
         ('F1', 'F1'),
         ('F2', 'F2'),
@@ -192,10 +168,10 @@ class Tornado(models.Model):
         ('F5', 'F5'),
     ]
     category = models.CharField(
-        max_length=2, choices=CATEGORY_CHOICES, blank=True, null=True, 
+        max_length=2, choices=CATEGORY_CHOICES, blank=True, null=True,
         help_text="Category of the tornado."
     )
-    
+
     damage_description = models.TextField(
         blank=True, null=True, help_text="Description of the damage caused.")
 
@@ -214,11 +190,11 @@ class Fire(models.Model):
         ('moderate', 'Moderate'),
         ('high', 'High'),
     ]
-    
+
     fire_intensity = models.CharField(
         max_length=20, choices=FIRE_INTENSITY_CHOICES, blank=True, null=True,
         help_text="Intensity of the fire."
-    )    
+    )
     is_contained = models.BooleanField(
         default=False, help_text="Indicates if the fire is contained.")
     cause = models.CharField(max_length=255, blank=True,

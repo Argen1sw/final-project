@@ -63,9 +63,8 @@ const circleLayer = L.layerGroup();
 fetch("/geojson/")
   .then((response) => response.json())
   .then((data) => {
-    
-    // const alertsList = document.getElementById("alertsList");
 
+    
     // Loop through each alert and add a marker to the map
     data.features.forEach((feature) => {
       const coords = feature.geometry.coordinates;
@@ -90,7 +89,7 @@ fetch("/geojson/")
       // Add marker layer to the map
       const marker = L.marker([coords[1], coords[0]], { icon }) // Leaflet expects [lat, lng]
       .bindPopup(`
-        <b>${hazard_type})</b><br>
+        <b>${hazard_type}</b><br>
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
@@ -180,28 +179,45 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
   hazardType =  document.getElementById("hazardType").value;
 
   if (hazardType === "earthquake") {
+    var magnitude = document.getElementById("earthquakeMagnitude").value;
+    var depth = document.getElementById("earthquakeDepth").value;
     hazardData = {
-      magnitude: document.getElementById("earthquakeMagnitude").value,
-      depth: document.getElementById("earthquakeDepth").value,
+        magnitude: magnitude !== "" ? parseFloat(magnitude) : null,
+        depth: depth !== "" ? parseFloat(depth) : null
     };
   } else if (hazardType === "flood") {
+    var severity = document.getElementById("floodSeverity").value;
+    var waterLevel = document.getElementById("floodWaterLevel").value;
+    var flashFlood = document.getElementById("flashFlood").checked;
     hazardData = {
-      severity: document.getElementById("floodSeverity").value,
-      water_level: document.getElementById("floodWaterLevel").value,
-      flashFlood: document.getElementById("flashFlood").checked, 
+      severity: severity || null, 
+      water_level: waterLevel !== "" ? parseFloat(waterLevel) : null,
+      flashFlood: flashFlood
     };
   } else if (hazardType === "tornado") {
+    var category = document.getElementById("tornadoCategory").value;
+    var damage = document.getElementById("tornadoDamage").value;
     hazardData = {
-      category: document.getElementById("tornadoCategory").value,
-      damage: document.getElementById("tornadoDamage").value,
+      category: category || null,
+      damage: damage || null
     };
   } else if (hazardType === "fire") {
+    var intensity = document.getElementById("fireIntensity").value;
+    var cause = document.getElementById("fireCause").value;
+    var isContained = document.getElementById("fireContained").checked;
     hazardData = {
-      intensity: document.getElementById("fireIntensity").value,
-      cause: document.getElementById("fireCause").value,
-      isContained: document.getElementById("fireContained").checked,
-    };
+      intensity: intensity || null,
+      cause: cause || null,
+      isContained: isContained
+  };
   }
+
+  // Remove keys with empty string values so the view don't receive them adding an extra layer of validation
+  Object.keys(hazardData).forEach(function(key) {
+    if (hazardData[key] === "") {
+      delete hazardData[key];
+    }
+  });
 
   const data = {
     description: document.getElementById("alertDescription").value,
@@ -211,7 +227,6 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
     source_url: document.getElementById("sourceUrl").value,
     hazard_type: hazardType,
     hazard_data: hazardData
-    // hazard_type: document.getElementById("hazardType").value,
   };
 
   fetch("/create_alerts/", {
@@ -455,7 +470,6 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   const newRadius = DEFAULT_RADIUS[e.target.value];
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
-
 
 
   var selected = this.value;

@@ -13,21 +13,21 @@ from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
+from django.forms.models import model_to_dict
 
 # Local Imports
 from .serializers import AlertGeoSerializer
-from .models import Alert
+from .models import (Alert, Earthquake, Flood, Tornado, Fire) 
 
 # Simple mapping of hazard types to model names
 # This is a temporary solution and should be replaced with a more robust solution
 # in the future.
 HAZARD_MODEL_MAPPING = {
-    'earthquake': 'Earthquake',
-    'flood': 'Flood',
-    'tornado': 'Tornado',
-    'fire': 'Fire',
+    'earthquake': Earthquake,
+    'flood': Flood,
+    'tornado': Tornado,
+    'fire': Fire,
 }
-
 
 class HomeView(TemplateView):
     """
@@ -63,13 +63,18 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
         paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
+        
+         # Inject hazard type information on each alert
+        for alert in page_obj:
+            alert.hazard_type = alert.content_type.model if alert.content_type else None
+
         context['page_obj'] = page_obj
         return context
-
+    
 
 class AlertGeoJsonListView(generics.ListAPIView):
     """
-    Returns all active alerts in GeoJSON format.
+    Returns all active alerts in GeoJSON format along with the hazard type and details.
 
     * Alerts are filtered by the `is_active` field.
     """
@@ -118,15 +123,24 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         content_type = None
         object_id = None
         
+        # Preprocess hazard_data to ensure no empty strings are passed to the model
+        hazard_data = {
+            key: (value if not (isinstance(value, str) and value.strip() == "") else None)
+            for key, value in hazard_data.items()
+        }
+        
         if hazard_model_name:
             model_class = HAZARD_MODEL_MAPPING.get(hazard_model_name.lower())
             if not model_class:
                 return Response({"error": "Invalid hazard type."}, status=400)
             try:
+                print(hazard_data)
                 hazard_instance = model_class.objects.create(**hazard_data)
                 content_type = ContentType.objects.get_for_model(model_class)
                 object_id = hazard_instance.id
+                
             except Exception as e:
+                print("Error creating Hazard:", str(e))
                 return Response({"error": f"Error creating Hazard: {str(e)}"}, status=400)
         
         # Create alert
@@ -148,7 +162,6 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 content_type=content_type,
                 object_id=object_id
             )
-
             # Build response data to dynamically update the map and list of alerts
             response_data = {
                 "id": alert.id,
@@ -160,10 +173,9 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 "effect_radius": alert.effect_radius,
                 
                 # "hazard_type": alert.hazard_type,
-                "hazard_details": {
-                    "hazard_type": hazard_model_name,
-                    "hazard_data": hazard_data
-                },
+                "hazard_type": hazard_model_name,
+                "hazard_details": hazard_data,
+
                 
                 "reported_by": (
                     str(alert.reported_by)
@@ -204,7 +216,7 @@ class AlertsPaginatedView(APIView):
         if search_query:
             alerts = Alert.objects.filter(
                 Q(description__icontains=search_query) |
-                Q(hazard_type__icontains=search_query) |
+                Q(content_type__model__icontains=search_query) |
                 Q(country__icontains=search_query) |
                 Q(city__icontains=search_query) |
                 Q(county__icontains=search_query)
@@ -226,7 +238,8 @@ class AlertsPaginatedView(APIView):
                     "coordinates": [alert.location.x, alert.location.y]
                 },
                 "effect_radius": alert.effect_radius,
-                "hazard_type": alert.hazard_type,
+                "hazard_type": alert.content_type.model if alert.content_type else None,
+                "hazard_details": model_to_dict(alert.hazard_details) if alert.hazard_details else None,
                 "reported_by": str(alert.reported_by) if alert.reported_by else None,
                 "source_url": alert.source_url,
                 "country": alert.country,

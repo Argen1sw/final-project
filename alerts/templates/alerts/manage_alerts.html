@@ -43,12 +43,6 @@
       <h3>Add Alert</h3>
       <form id="alertForm">
 
-        <textarea
-          id="alertDescription"
-          placeholder="Brief description (What is happening, etc.)"
-          required>
-        </textarea><br /><br />
-
         <!-- Hazard Type Dropdown -->
         <label for="hazardType">Hazard Type:</label>
         <select id="hazardType">
@@ -56,18 +50,36 @@
           <option value="flood">Flood</option>
           <option value="tornado">Tornado</option>
           <option value="fire">Fire</option>
-        </select><br />
+        </select><br/>
+
+        <!-- Add a radius of effect -->
+        <label for="effectRadius">Radius of effect:</label>
+        <input
+          type="number"
+          id="effectRadius"
+          placeholder="e.g: 2"
+        /><br/>
+
+        <h5>Brief Description</h5>
+        <textarea
+          id="alertDescription"
+          placeholder="Brief description (What is happening, etc.)"
+          required>
+        </textarea><br/><br/>
+
+
+        <h5>Additional Information (optional)</h5>
 
         <!-- Extra Fields for Earthquake -->
-        <div id="earthquakeFields" class="hazard-fields" style="display: none;">
+        <div id="earthquakeFields" class="hazard-fields" style="display: block;">
           
           <label for="earthquakeMagnitude">Magnitude:</label>
           <input type="number" step="0.01" id="earthquakeMagnitude" placeholder="e.g.: 5.5">
-          <br />
+          <br/>
           
           <label for="earthquakeDepth">Depth (km):</label>
           <input type="number" step="0.01" id="earthquakeDepth" placeholder="e.g.: 10.0">
-          <br /><br />
+          <br/>
 
         </div>
 
@@ -82,13 +94,13 @@
           </select>
           <br />
           
-          <label for="floodwaterLevel">Water Level (m):</label>
-          <input type="number" step="0.01" id="floodwaterLevel" placeholder="e.g.: 2.5">
+          <label for="floodWaterLevel">Water Level (m):</label>
+          <input type="number" step="0.01" id="floodWaterLevel" placeholder="e.g.: 2.5">
           <br />
 
           <label for="flashFlood">Flash Flood:</label>
           <input type="checkbox" id="flashFlood">
-          <br /><br />
+          <br />
   
         </div>
         
@@ -108,7 +120,7 @@
 
           <label for="tornadoDamage">Damage:</label>
           <input type="text" id="tornadoDamage" placeholder="e.g.: Trees down, etc.">
-          <br /><br />
+          <br />
 
         </div>
 
@@ -128,9 +140,10 @@
           <br/>
 
           <label for="FireContained">Contained:</label>
-          <input type="checkbox" id="FireContained">
-          <br/><br/>
-        <div/>
+          <input type="checkbox" id="fireContained">
+          <br/>
+        </div>
+
 
         <!-- Source URL Field -->
         <label for="sourceUrl">Source URL:</label>
@@ -138,15 +151,6 @@
           type="url"
           id="sourceUrl"
           placeholder="http://example.com"
-        /><br /><br />
-
-        <!-- Add a radius input in this form -->
-        <!--  -->
-        <label for="effectRadius">Radius of effect:</label>
-        <input
-          type="number"
-          id="effectRadius"
-          placeholder="e.g: 2"
         /><br /><br />
 
         <!-- Hidden Fields for Lat/Lng -->
