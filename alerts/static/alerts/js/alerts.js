@@ -25,11 +25,6 @@ const hazardIcons = {
       iconUrl: ICONS.tornado_icon,
       iconSize: [25, 41],
       iconAnchor: [12, 41]
-  }),
-  storm: L.icon({
-      iconUrl: ICONS.storm_icon,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41]
   })
 };
 
@@ -47,7 +42,6 @@ const DEFAULT_RADIUS = {
   flood: 10000,
   tornado: 5000,
   fire: 5000,
-  storm: 50000
 };
 
 let currentCircle = null; // Store reference to temporary circle
@@ -59,7 +53,6 @@ layerGroups = {
   flood: L.layerGroup().addTo(map),
   tornado: L.layerGroup().addTo(map),
   fire: L.layerGroup().addTo(map),
-  storm: L.layerGroup().addTo(map),
   default: L.layerGroup().addTo(map)
 };
 
@@ -70,9 +63,8 @@ const circleLayer = L.layerGroup();
 fetch("/geojson/")
   .then((response) => response.json())
   .then((data) => {
-    
-    // const alertsList = document.getElementById("alertsList");
 
+    
     // Loop through each alert and add a marker to the map
     data.features.forEach((feature) => {
       const coords = feature.geometry.coordinates;
@@ -97,7 +89,7 @@ fetch("/geojson/")
       // Add marker layer to the map
       const marker = L.marker([coords[1], coords[0]], { icon }) // Leaflet expects [lat, lng]
       .bindPopup(`
-        <b>${hazard_type})</b><br>
+        <b>${hazard_type}</b><br>
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
@@ -182,13 +174,59 @@ document.getElementById('effectRadius').addEventListener('input', function(e) {
 document.getElementById("alertForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
+  // Prepare hazard-specific data
+  var hazardData = {};
+  hazardType =  document.getElementById("hazardType").value;
+
+  if (hazardType === "earthquake") {
+    var magnitude = document.getElementById("earthquakeMagnitude").value;
+    var depth = document.getElementById("earthquakeDepth").value;
+    hazardData = {
+        magnitude: magnitude !== "" ? parseFloat(magnitude) : null,
+        depth: depth !== "" ? parseFloat(depth) : null
+    };
+  } else if (hazardType === "flood") {
+    var severity = document.getElementById("floodSeverity").value;
+    var waterLevel = document.getElementById("floodWaterLevel").value;
+    var flashFlood = document.getElementById("flashFlood").checked;
+    hazardData = {
+      severity: severity || null, 
+      water_level: waterLevel !== "" ? parseFloat(waterLevel) : null,
+      flashFlood: flashFlood
+    };
+  } else if (hazardType === "tornado") {
+    var category = document.getElementById("tornadoCategory").value;
+    var damage = document.getElementById("tornadoDamage").value;
+    hazardData = {
+      category: category || null,
+      damage: damage || null
+    };
+  } else if (hazardType === "fire") {
+    var intensity = document.getElementById("fireIntensity").value;
+    var cause = document.getElementById("fireCause").value;
+    var isContained = document.getElementById("fireContained").checked;
+    hazardData = {
+      intensity: intensity || null,
+      cause: cause || null,
+      isContained: isContained
+  };
+  }
+
+  // Remove keys with empty string values so the view don't receive them adding an extra layer of validation
+  Object.keys(hazardData).forEach(function(key) {
+    if (hazardData[key] === "") {
+      delete hazardData[key];
+    }
+  });
+
   const data = {
     description: document.getElementById("alertDescription").value,
     lat: document.getElementById("alertLat").value,
     lng: document.getElementById("alertLng").value,
     effect_radius: currentCircle.getRadius(),
-    hazard_type: document.getElementById("hazardType").value,
     source_url: document.getElementById("sourceUrl").value,
+    hazard_type: hazardType,
+    hazard_data: hazardData
   };
 
   fetch("/create_alerts/", {
@@ -432,6 +470,29 @@ document.getElementById('hazardType').addEventListener('change', function(e) {
   const newRadius = DEFAULT_RADIUS[e.target.value];
   currentCircle.setRadius(newRadius);
   document.getElementById('effectRadius').value = newRadius;
+
+
+  var selected = this.value;
+  var fields = document.querySelectorAll(".hazard-fields");
+
+  fields.forEach(function(el) {
+    el.style.display = "none";
+  });
+
+  // Show the corresponding fields if available
+  if (selected === "earthquake") {
+    document.getElementById("earthquakeFields").style.display = "block";
+  }
+  else if (selected === "flood") {
+    document.getElementById("floodFields").style.display = "block";
+  }
+  else if (selected === "tornado") {
+    document.getElementById("tornadoFields").style.display = "block";
+  }
+  else if (selected === "fire") {
+    document.getElementById("fireFields").style.display = "block";
+  }
+
 });
 
 
