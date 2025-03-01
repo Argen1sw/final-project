@@ -44,6 +44,15 @@ class HomeView(TemplateView):
         paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
+        
+        # Inject hazard type information on each alert
+        for alert in page_obj:
+            alert.hazard_type = alert.content_type.model if alert.content_type else None
+            alert.hazard_details_dict = model_to_dict(alert.hazard_details) if alert.hazard_details else None
+            del alert.hazard_details_dict['id']
+            for key in alert.hazard_details_dict:
+                if alert.hazard_details_dict[key] is None:
+                    alert.hazard_details_dict[key] = "N/A"
         context['page_obj'] = page_obj
         return context
 
@@ -64,10 +73,14 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
         
-         # Inject hazard type information on each alert
+        # Inject hazard type information on each alert
         for alert in page_obj:
             alert.hazard_type = alert.content_type.model if alert.content_type else None
-
+            alert.hazard_details_dict = model_to_dict(alert.hazard_details) if alert.hazard_details else None
+            del alert.hazard_details_dict['id']
+            for key in alert.hazard_details_dict:
+                if alert.hazard_details_dict[key] is None:
+                    alert.hazard_details_dict[key] = "Not Provided"
         context['page_obj'] = page_obj
         return context
     
@@ -134,7 +147,6 @@ class CreateAlertView(LoginRequiredMixin, APIView):
             if not model_class:
                 return Response({"error": "Invalid hazard type."}, status=400)
             try:
-                print(hazard_data)
                 hazard_instance = model_class.objects.create(**hazard_data)
                 content_type = ContentType.objects.get_for_model(model_class)
                 object_id = hazard_instance.id
@@ -149,15 +161,11 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                 description=data.get('description', ''),
                 location=Point(float(data['lng']), float(data['lat'])),
                 effect_radius=data.get('effect_radius'),
-                
-                # hazard_type=data.get('hazard_type'),
-                
                 reported_by=current_user,
                 source_url=data.get('source_url', None),
                 country=address.get('country', ''),
                 city=address.get('city', address.get('town', '')),
                 county=address.get('county', ''),
-                
                 # Associated the hazard-specific model with the alert
                 content_type=content_type,
                 object_id=object_id

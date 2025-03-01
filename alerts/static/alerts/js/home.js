@@ -29,11 +29,6 @@ const hazardIcons = {
     iconSize: [25, 41],
     iconAnchor: [12, 41]
   }),
-  storm: L.icon({
-    iconUrl: ICONS.storm_icon,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-  })
 };
 
 
@@ -44,14 +39,13 @@ L.tileLayer(
   {}
 ).addTo(map);
 
-// Alerts default radius of effect in meters
-const DEFAULT_RADIUS = {
-  earthquake: 50000,    
-  flood: 10000,
-  tornado: 5000,
-  fire: 5000,
-  storm: 50000
-};
+// // Alerts default radius of effect in meters
+// const DEFAULT_RADIUS = {
+//   earthquake: 50000,    
+//   flood: 10000,
+//   tornado: 5000,
+//   fire: 5000
+// };
 
 // layer group for markers types of alerts -- Adjust this whenever a new hazard type is added
 // create an dict of layer groups for each hazard type
@@ -59,9 +53,8 @@ layerGroups = {
   earthquake: L.layerGroup().addTo(map),
   flood: L.layerGroup().addTo(map),
   tornado: L.layerGroup().addTo(map),
-  fire: L.layerGroup().addTo(map),
-  storm: L.layerGroup().addTo(map),
-  default: L.layerGroup().addTo(map)
+  fire: L.layerGroup().addTo(map)
+  // default: L.layerGroup().addTo(map)
 };
 
 const circleLayer = L.layerGroup();
@@ -95,7 +88,7 @@ fetch("/geojson/")
       // Add marker layer to the map
       const marker = L.marker([coords[1], coords[0]], { icon }) // Leaflet expects [lat, lng]
       .bindPopup(`
-        <b>${hazard_type})</b><br>
+        <b>${hazard_type}</b><br>
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
@@ -172,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <p>${alert.description}</p>
             <p>Location: ${alert.city || alert.county || alert.country || "Unknown"}</p>
             <p>Reported by: ${alert.reported_by || "Unknown"}</p>
+            <p>${formatHazardDetails(alert.hazard_details)}</p>
             <p><a href="${alert.source_url}" target="_blank">More Info</a></p>
             <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
           `;
@@ -202,6 +196,25 @@ document.addEventListener("DOMContentLoaded", function() {
       })
     .catch(error => console.error("Error fetching alerts:", error));
 
+  }
+
+  // Format hazard details for display
+  function formatHazardDetails(details) {
+    if (!details) return "No hazard details available.";
+    let detailsArray = [];
+    for (const key in details) {
+      if (details.hasOwnProperty(key)) {
+        if(key === "id") continue;
+        // Replace underscores with spaces and capitalize each word
+        let formattedKey = key.replace(/_/g, ' ')
+                              .split(' ')
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                              .join(' ');
+        let value = details[key] === null ? "Not Provided" : details[key];
+        detailsArray.push(`${formattedKey}: ${value}`);
+      }
+    }
+    return detailsArray.join('<br>');
   }
 
   // Update pagination button states and display text

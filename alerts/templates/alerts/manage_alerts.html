@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}EnviroAlerts | Alert management {% endblock %}
 
@@ -79,6 +80,10 @@
           
           <label for="earthquakeDepth">Depth (km):</label>
           <input type="number" step="0.01" id="earthquakeDepth" placeholder="e.g.: 10.0">
+          <br/>
+
+          <label for="epicenterDescription">Description:</label>
+          <input type="text" id="epicenterDescription" placeholder="e.g.: Near city X">
           <br/>
 
         </div>
@@ -185,6 +190,15 @@
             <p>{{ alert.description }}</p>
             <p>Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}</p>
             <p>Reported by: {{ alert.reported_by|default:"Unknown" }}</p>
+            
+            {% if alert.hazard_details_dict %}
+              {% for key, value in alert.hazard_details_dict.items %}
+                <p>{{ key|remove_underscores }}: {{ value }}</p>
+              {% endfor %}
+            {% else %}
+              <p>No hazard details available.</p>
+            {% endif %}
+
             <p>
               <a href="{{ alert.source_url }}" target="_blank">More Info</a>
             </p>

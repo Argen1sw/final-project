@@ -150,7 +150,7 @@ class Flood(models.Model):
         default=False, help_text="Indicates if it is a flash flood.")
 
     def __str__(self):
-        return f"Flood (Water Level: {self.water_level}m, Flash Flood: {self.is_flash_flood})"
+        return f"Flood (Severity: {self.severity}, Water Level: {self.water_level} m)"
 
 
 class Tornado(models.Model):
@@ -160,15 +160,15 @@ class Tornado(models.Model):
     * Fields are all optional.
     """
     CATEGORY_CHOICES = [
-        ('F0', 'F0'),
-        ('F1', 'F1'),
-        ('F2', 'F2'),
-        ('F3', 'F3'),
-        ('F4', 'F4'),
-        ('F5', 'F5'),
+        ('EF0', 'EF0'),
+        ('EF1', 'EF1'),
+        ('EF2', 'EF2'),
+        ('EF3', 'EF3'),
+        ('EF4', 'EF4'),
+        ('EF5', 'EF5'),
     ]
     category = models.CharField(
-        max_length=2, choices=CATEGORY_CHOICES, blank=True, null=True,
+        max_length=3, choices=CATEGORY_CHOICES, blank=True, null=True,
         help_text="Category of the tornado."
     )
 
@@ -176,7 +176,7 @@ class Tornado(models.Model):
         blank=True, null=True, help_text="Description of the damage caused.")
 
     def __str__(self):
-        return f"Tornado (Wind Speed: {self.wind_speed} km/h)"
+        return f"Tornado (Category: {self.category})"
 
 
 class Fire(models.Model):
@@ -201,4 +201,4 @@ class Fire(models.Model):
                              null=True, help_text="Possible cause of the fire.")
 
     def __str__(self):
-        return f"Fire (Affected Area: {self.affected_area} sq km, Contained: {self.is_contained})"
+        return f"Fire (Intensity: {self.fire_intensity}, Contained: {self.is_contained})"

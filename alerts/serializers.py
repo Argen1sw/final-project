@@ -10,6 +10,7 @@ class AlertGeoSerializer(GeoFeatureModelSerializer):
     """
     Serializer to return Alert data as GeoJSON features.
     """
+    reported_by = serializers.SlugRelatedField(read_only=True, slug_field='username')
     hazard_type = serializers.SerializerMethodField()
     hazard_details = serializers.SerializerMethodField()
     

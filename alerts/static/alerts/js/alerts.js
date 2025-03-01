@@ -52,8 +52,8 @@ layerGroups = {
   earthquake: L.layerGroup().addTo(map),
   flood: L.layerGroup().addTo(map),
   tornado: L.layerGroup().addTo(map),
-  fire: L.layerGroup().addTo(map),
-  default: L.layerGroup().addTo(map)
+  fire: L.layerGroup().addTo(map)
+  // default: L.layerGroup().addTo(map)
 };
 
 const circleLayer = L.layerGroup();
@@ -181,9 +181,11 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
   if (hazardType === "earthquake") {
     var magnitude = document.getElementById("earthquakeMagnitude").value;
     var depth = document.getElementById("earthquakeDepth").value;
+    var epicenterDescription = document.getElementById("epicenterDescription").value;
     hazardData = {
         magnitude: magnitude !== "" ? parseFloat(magnitude) : null,
-        depth: depth !== "" ? parseFloat(depth) : null
+        depth: depth !== "" ? parseFloat(depth) : null,
+        epicenter_description: epicenterDescription || null
     };
   } else if (hazardType === "flood") {
     var severity = document.getElementById("floodSeverity").value;
@@ -192,23 +194,23 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
     hazardData = {
       severity: severity || null, 
       water_level: waterLevel !== "" ? parseFloat(waterLevel) : null,
-      flashFlood: flashFlood
+      is_flash_flood: flashFlood
     };
   } else if (hazardType === "tornado") {
     var category = document.getElementById("tornadoCategory").value;
     var damage = document.getElementById("tornadoDamage").value;
     hazardData = {
       category: category || null,
-      damage: damage || null
+      damage_description: damage || null
     };
   } else if (hazardType === "fire") {
     var intensity = document.getElementById("fireIntensity").value;
     var cause = document.getElementById("fireCause").value;
     var isContained = document.getElementById("fireContained").checked;
     hazardData = {
-      intensity: intensity || null,
-      cause: cause || null,
-      isContained: isContained
+      fire_intensity: intensity || null,
+      is_contained: isContained,
+      cause: cause || null
   };
   }
 
@@ -254,7 +256,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
         [alert.location.coordinates[1], alert.location.coordinates[0]], 
         { icon })
       .bindPopup(`
-        <b>${alert.hazard_type})</b><br>
+        <b>${alert.hazard_type}</b><br>
         ${alert.description}<br>
         Reported by: ${alert.reported_by || "Unknown"}<br>
         <a href="${alert.source_url || '#'}" target="_blank">More Info</a>
@@ -347,6 +349,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <p>${alert.description}</p>
             <p>Location: ${alert.city || alert.county || alert.country || "Unknown"}</p>
             <p>Reported by: ${alert.reported_by || "Unknown"}</p>
+            <p>${formatHazardDetails(alert.hazard_details)}</p>
             <p><a href="${alert.source_url}" target="_blank">More Info</a></p>
             <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
           `;
@@ -377,6 +380,25 @@ document.addEventListener("DOMContentLoaded", function() {
       })
     .catch(error => console.error("Error fetching alerts:", error));
 
+  }
+
+  // Format hazard details for display
+  function formatHazardDetails(details) {
+    if (!details) return "No hazard details available.";
+    let detailsArray = [];
+    for (const key in details) {
+      if (details.hasOwnProperty(key)) {
+        if(key === "id") continue;
+        // Replace underscores with spaces and capitalize each word
+        let formattedKey = key.replace(/_/g, ' ')
+                              .split(' ')
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                              .join(' ');
+        let value = details[key] === null ? "Not Provided" : details[key];
+        detailsArray.push(`${formattedKey}: ${value}`);
+      }
+    }
+    return detailsArray.join('<br>');
   }
 
   // Update pagination button states and display text
