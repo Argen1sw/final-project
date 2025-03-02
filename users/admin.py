@@ -4,7 +4,7 @@ from .models import User
 # Register your models here.
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-        # Fields to display in the admin list view
+    # Fields to display in the admin list view
     list_display = ('username', 'email', 'user_type', 'is_verified', 'is_suspended', 'date_joined')
     list_filter = ('user_type', 'is_verified', 'is_suspended')
     search_fields = ('username', 'email')

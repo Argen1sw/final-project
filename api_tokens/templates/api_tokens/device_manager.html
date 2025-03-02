@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %} 
+{% block title %}EnviroAlerts | Device Manager {% endblock %}
+
+{% block map_features %}
+<link rel="stylesheet" href="{% static 'api_tokens/css/style.css' %}" />
+{% endblock %} 
+
+{% block content %}
+
+  {% comment %} Make this message feature better later on with CSS to allow users to hide the message {% endcomment %}
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li
+        {% if "token" in message.tags %} 
+          class="{{ message.tags }}"
+        {% endif %}>
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <h2>Device Manager</h2>
+
+  {% if user.is_admin or user.is_ambassador %}
+    <h3>All Devices</h3>
+  {% else %}
+    <h3>Your Devices</h3>
+  {% endif %}
+
+  <table>
+    <thead>
+      <tr>
+        {% if user.is_admin or user.is_ambassador %}
+          <th>User</th>
+        {% endif %}
+        <th>Device Name</th>
+        <th>Token</th>
+        <th>Created At</th>
+        <th>Expires At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for token in access_tokens %}
+        <tr>
+          {% if user.is_admin or user.is_ambassador %}
+            <td>{{ token.user }}</td>
+          {% endif %}
+          <td>{{ token.device_name }}</td>
+          <td>{{ token.token }}</td>
+          <td>{{ token.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+          <td>{{ token.expires_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+          
+          <td>
+            <form method="post" action="{% url 'token_revoke' token.id %}">
+              {% csrf_token %}
+              {% if token.is_revoked %}
+                {% if user.is_admin or user.is_ambassador %}
+                  <button type="submit" >Unrevoke</button>
+                {% else %}
+                  Revoked
+                {% endif %}
+              {% else %}
+                <button type="submit">Revoke</button>
+              {% endif %}
+            </form>
+            
+            <form method="post" action="{% url 'token_delete' token.id %}">
+              {% csrf_token %}
+              <button type="submit">Delete</button>
+            </form>
+
+          </td>
+
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">No devices found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Generate New Device Token</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div>
+      <label for="device_name">Device Name:</label>
+      <input type="text" id="device_name" name="device_name" required>
+      <label for="expires_at">Expires At (up to 2 years):</label>
+      <input type="datetime-local" id="expires_at" name="expires_at">
+    </div>
+    <button type="submit">Generate Token</button>
+  </form>
+
+
+{% endblock %}

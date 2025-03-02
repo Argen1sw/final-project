@@ -83,7 +83,7 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
                     alert.hazard_details_dict[key] = "Not Provided"
         context['page_obj'] = page_obj
         return context
-    
+
 
 class AlertGeoJsonListView(generics.ListAPIView):
     """

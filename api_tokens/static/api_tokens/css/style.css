@@ -1,0 +1,117 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+h2,
+h3 {
+  color: #333;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Container for content */
+.profile-container,
+.device-manager-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #fff;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+table thead {
+  background-color: #007bff;
+  color: #fff;
+}
+
+table thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+}
+
+table tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+table tbody td {
+  padding: 10px;
+}
+
+/* Form Styles */
+form {
+  max-width: 400px;
+  margin: 20px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+form input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #218838;
+}
+
+/* Message Alerts */
+ul.messages {
+  list-style-type: none;
+  padding: 0;
+  margin: 10px auto;
+  max-width: 800px;
+}
+
+ul.messages li {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+ul.messages li.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+ul.messages li.success {
+  background-color: #d4edda;
+  color: #155724;
+}
