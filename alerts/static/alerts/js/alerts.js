@@ -53,7 +53,6 @@ layerGroups = {
   flood: L.layerGroup().addTo(map),
   tornado: L.layerGroup().addTo(map),
   fire: L.layerGroup().addTo(map)
-  // default: L.layerGroup().addTo(map)
 };
 
 const circleLayer = L.layerGroup();
@@ -312,7 +311,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Failed to submit the alert. Check console for details.");
+      alert("Failed to submit the alert");
     });
 });
 

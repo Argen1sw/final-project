@@ -3,9 +3,14 @@ from .models import (Alert, Earthquake, Flood, Tornado, Fire)
 
 @admin.register(Alert)
 class AlertAdmin(admin.ModelAdmin):
-    list_display = ('description', 'reported_by', 'created_at')
+    list_display = ('content_type', 'description', 'reported_by', 'created_at')
     search_fields = ('description',)
     list_filter = ('created_at',)
+    
+    def delete_model(self, request, obj):
+        if obj.hazard_details:
+            obj.hazard_details.delete()
+        super().delete_model(request, obj)
     
 @admin.register(Earthquake)
 class EarthquakeAdmin(admin.ModelAdmin):

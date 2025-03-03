@@ -94,7 +94,7 @@ class AlertGeoJsonListView(generics.ListAPIView):
     queryset = Alert.objects.filter(is_active=True)
     serializer_class = AlertGeoSerializer
 
-
+# Refactor this view in the future
 class CreateAlertView(LoginRequiredMixin, APIView):
     """
     API View class to create a new alert.
@@ -119,6 +119,11 @@ class CreateAlertView(LoginRequiredMixin, APIView):
         if lat is None or lng is None:
             return Response({"error": "Latitude and Longitude are required."}, status=400)
 
+        # Validate effect radius
+        effect_radius = data.get('effect_radius')
+        if effect_radius is not None and effect_radius > 100000:
+            return Response({"error": "The radius of effect cannot exceed 100 km (100,000 meters)."}, status=400)
+        
         # Reverse Geocoding
         try:
             geolocator = Nominatim(user_agent="enviroalerts")
@@ -179,12 +184,8 @@ class CreateAlertView(LoginRequiredMixin, APIView):
                     "coordinates": [alert.location.x, alert.location.y]
                 },
                 "effect_radius": alert.effect_radius,
-                
-                # "hazard_type": alert.hazard_type,
                 "hazard_type": hazard_model_name,
                 "hazard_details": hazard_data,
-
-                
                 "reported_by": (
                     str(alert.reported_by)
                     if alert.reported_by else None
@@ -263,19 +264,3 @@ class AlertsPaginatedView(APIView):
             "has_previous": page_obj.has_previous()
         }, status=status.HTTP_200_OK)
 
-
-
-#--------------------------------------------------------
-# ---------------------Old code--------------------------
-#--------------------------------------------------------
-
-# def resources_view(request):
-#     return render(request, 'alerts/resources.html')
-
-
-# def guide_example_view(request):
-#     return render(request, 'alerts/guide_example.html')
-
-
-# def about_view(request):
-#     return render(request, 'alerts/about.html')
