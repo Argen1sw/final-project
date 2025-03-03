@@ -5,6 +5,7 @@ from django.contrib.gis.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import now
+from django.core.validators import MaxValueValidator
 from datetime import timedelta
 
 # Local Imports
@@ -21,12 +22,13 @@ class Alert(models.Model):
     * If the deletion time is not set, it will be calculated based on the hazard type.
     * If the hazard type is changed, the deletion time will be recalculated.
     """
-    description = models.TextField(
+    description = models.TextField(null=True, blank=True,
         help_text="A brief description of the alert.")
     location = models.PointField(
         geography=True, help_text="2D geographic location of the alert.")
     effect_radius = models.PositiveIntegerField(
-        help_text="Radius of effect in meters"
+        validators=[MaxValueValidator(100000)],
+        help_text="Radius of effect in meters - max: 100 km."
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -105,6 +107,19 @@ class Alert(models.Model):
         self.is_active = False
         self.save(update_fields=['is_active'])
 
+    def delete(self, *args, **kwargs):
+        """
+        Override the delete method to handle the associated hazard instance.
+        """
+        # Delete the associated hazard instance if it exists.
+        if self.content_type and self.object_id:
+                try:
+                    hazard_instance = self.content_type.get_object_for_this_type(pk=self.object_id)
+                    hazard_instance.delete()
+                except self.content_type.model_class().DoesNotExist:
+                    pass
+        return super().delete(*args, **kwargs)
+    
     def __str__(self):
         hazard_str = self.content_type.model if self.content_type else "Unknown"
         return f"{hazard_str} - {self.description[:50]}"

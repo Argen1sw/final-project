@@ -2,45 +2,46 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics, mixins
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 # Local Imports
-from alerts.models import (Alert, Earthquake, Flood, Fire, Tornado)
+from alerts.models import Alert
+from .serializers import ListAlertSerializer, CreateAlertSerializer
 
-class CreateAlertAPIView(APIView):
+class ListAlertsAPIView(generics.ListAPIView):
     """
-    API view to create an alert.
+    API view to list all alerts.
+
+    * Accepts GET requests.
+    * Returns a list of all alerts in JSON format.
     """
+    queryset = Alert.objects.all()
+    serializer_class = ListAlertSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        """
-        Create an alert.
-        """
-        alert_type = request.data.get('alert_type')
-        if alert_type == 'earthquake':
-            magnitude = request.data.get('magnitude')
-            depth = request.data.get('depth')
-            alert = Earthquake.objects.create(
-                magnitude=magnitude, depth=depth)
-        elif alert_type == 'flood':
-            severity = request.data.get('severity')
-            water_level = request.data.get('water_level')
-            is_flash_flood = request.data.get('is_flash_flood')
-            alert = Flood.objects.create(
-                severity=severity, water_level=water_level, is_flash_flood=is_flash_flood)
-        elif alert_type == 'tornado':
-            category = request.data.get('category')
-            damage_description = request.data.get('damage_description')
-            alert = Tornado.objects.create(
-                category=category, damage_description=damage_description)
-        elif alert_type == 'fire':
-            alert = Fire.objects.create()
-        else:
-            return Response({'error': 'Invalid alert type'}, status=status.HTTP_400_BAD_REQUEST)
-        Alert.objects.create(alert=alert, user=request.user)
-        return Response({'message': 'Alert created successfully'}, status=status.HTTP_201_CREATED)
-    
-    
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
- 
+
+class CreateAlertAPIView(generics.GenericAPIView,
+                         mixins.CreateModelMixin):
+    """
+    API view to create an alert.
+
+    **Supported alert types and its fields:**
+      - **earthquake**: hazard_data: {magnitude:number, depth:number, epicenter_description:string}.
+      - **flood**: hazard_data: {severity:low||moderate||major, water_level:number(meters), is_flash_flood:boolean}.
+      - **tornado**: hazard_data: {category:EF0 up to EF5, damage_description:string}.
+      - **fire**: hazard_data: {fire_intensity:low||moderate||high, is_contained:boolean, cause:string}.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = CreateAlertSerializer
+    
+    @swagger_auto_schema(
+        responses={201: openapi.Response("Alert created successfully"), 400: "Bad Request"}
+    )
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
