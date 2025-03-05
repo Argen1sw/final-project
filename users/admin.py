@@ -17,7 +17,7 @@ class UserAdmin(admin.ModelAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important Dates', {'fields': ('last_login', 'date_joined')}),
         ('User Type and Status', {'fields': ('user_type', 'is_verified', 'is_suspended')}),
-        ('Other Information', {'fields': ('alerts_created', 'alerts_verified')}),
+        ('Other Information', {'fields': ('alerts_created', 'alerts_upvoted')}),
     )
 
     # Fields for the user creation form

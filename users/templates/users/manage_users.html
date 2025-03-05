@@ -8,7 +8,23 @@
 {% endblock %}
 
 {% block content %}
+
   <div class="container">
+
+    <!-- Messages -->
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li
+          {% if "user-manager" in message.tags %} 
+            class="{{ message.tags }}"
+          {% endif %}>
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    
     <!-- Header -->
     <div class="header-title">Manage Users</div>
 

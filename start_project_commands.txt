@@ -1,0 +1,3 @@
+- python manage.py runserver
+- python -m celery -A enviroAlerts  worker -l info
+- celery -A enviroAlerts beat -l info

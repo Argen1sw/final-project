@@ -84,15 +84,14 @@ class CreateAlertSerializer(serializers.ModelSerializer):
             'lng', # Longitude - Required
             'hazard_type', # Type of hazard - Required
             'effect_radius', # Radius of effect in meters - Optional as default will be set
-            'soft_deletion_time', # Time when the alert expires - Optional as default will be set
             'description', # Description of the alert - Optional
             'source_url', # Source URL for the alert - Optional
             'hazard_data', # Additional data for the hazard - Optional
         )
 
     def validate_effect_radius(self, value):
-        if value > 100000:  # 100 km = 100,000 meters
-            raise serializers.ValidationError("The radius of effect cannot exceed 100 km (100,000 meters).")
+        if value > 100000 or value < 0:  # 100 km = 100,000 meters
+            raise serializers.ValidationError("The radius of effect cannot exceed 100 km or be less than 0 m.")
         return value
 
     def create(self, validated_data):

@@ -7,9 +7,6 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 
-# Local Imports
-from users.models import User
-
 class AccessToken(models.Model):
     """
     Access token model to store information about access tokens.

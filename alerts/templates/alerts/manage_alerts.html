@@ -13,6 +13,7 @@
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
   <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="{% static 'alerts/css/style.css' %}" />
 
   {% comment %} Using downloaded version of leaflet -- https://leafletjs.com/download.html {% endcomment %}
   <link rel="stylesheet" href="{% static 'alerts/js/leaflet/leaflet.css' %}" />
@@ -200,7 +201,7 @@
             {% endif %}
 
             <p>
-              <a href="{{ alert.source_url }}" target="_blank">More Info</a>
+              <a href="{% url 'alert_details' alert.id %}" target="_blank">More Details / Edit Alert</a>
             </p>
             <p><em>Created on: {{ alert.created_at }}</em></p>
           </div>

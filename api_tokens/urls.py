@@ -55,19 +55,6 @@ if (httpResponseCode > 0) {
   }
 }
 ```
-{
-  "lat": 38.877537,
-  "lng": -77.056191,
-  "description": "Something happened in DC",
-  "hazard_type": "fire",
-  "effect_radius": 5000,
-  "source_url": "https://www.django-rest-framework.org/api-guide/generic-views/",
-  "hazard_data": {
-		"fire_intensity":"low",
-		"is_contained":"False",
-		"cause":"Lightning"
-  }
-}
 
 For any inquiries, please contact us at [argen1swong@gmail.com](mailto:argen1swong@gmail.com)
 any other admin or ambassador.

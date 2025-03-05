@@ -3,7 +3,8 @@ from django.urls import path, include
 
 # Local Imports
 from .views import (ManageAlertsView, CreateAlertView,
-                    HomeView, AlertGeoJsonListView, AlertsPaginatedView)
+                    HomeView, AlertGeoJsonListView, AlertsPaginatedView,
+                    AlertDetailsView, AlertVoteView, AlertDetailsEditView)
 
 
 urlpatterns = [
@@ -20,7 +21,12 @@ urlpatterns = [
     # Path endpoint for the  all Alerts in GeoJSON format (Used for the map)
     path('geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
 
-    # Path endpoint for paginated alerts (Used for AJAX)
+    # Path endpoint for paginated alerts (Used for AJAX request)
     path('paginated_alerts/', AlertsPaginatedView.as_view(), name='paginated_alert'),
     
+    path('alert/<int:pk>/', AlertDetailsView.as_view(), name='alert_details'),
+    
+    path('alert/<int:pk>/edit/', AlertDetailsEditView.as_view(), name='edit_alert'),
+ 
+    path('alert/<int:pk>/vote', AlertVoteView.as_view(), name='vote_alert'),  
 ]
