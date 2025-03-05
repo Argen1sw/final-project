@@ -11,18 +11,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator
 from rest_framework.views import APIView
+from django.views import View
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponseForbidden
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 
 # Local Imports
 from .forms import (RegisterForm, LoginForm,
                     UserProfileForm, PasswordUpdateForm, EmailUpdateForm)
 from .models import User
 
-
-# - Add messages display to the login page and registration page
 
 class UserRegisterView(CreateView):
     """
@@ -47,16 +48,8 @@ class UserRegisterView(CreateView):
         )
         if user is not None:
             login(self.request, user)
-            messages.success(
-                self.request,
-                f"Registration successful. Welcome, {user.username}!"
-            )
             return redirect("home")
         else:
-            messages.error(
-                self.request,
-                "There was a problem logging you in automatically. Please log in manually."
-            )
             return redirect("login")
 
 
@@ -89,11 +82,10 @@ class ManageUsersView(LoginRequiredMixin, TemplateView):
         """
         Check if the user is an admin or ambassador.
         """
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         if not request.user.is_admin() and not request.user.is_ambassador():
-            messages.error(
-                request,
-                "You do not have permission to access this page."
-            )
             return redirect("home")
         return super().dispatch(request, *args, **kwargs)
 
@@ -110,7 +102,7 @@ class ManageUsersView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
+class ManageUsersPaginatedView(APIView):
     """
     View class that handles user management.
 
@@ -119,16 +111,14 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
     * Ambassador users can only manage normal users.
     * This view returns a JSON response for pagination purposes.
     """
-
     def dispatch(self, request, *args, **kwargs):
         """
         Check if the user is an admin or ambassador.
         """
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         if not request.user.is_admin() and not request.user.is_ambassador():
-            messages.error(
-                request,
-                "You do not have permission to access this page."
-            )
             return redirect("home")
         return super().dispatch(request, *args, **kwargs)
 
@@ -138,8 +128,6 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
 
         * The user can search for a user by username or email.
         """
-        user_type = request.user.user_type
-
         search_query = request.GET.get("q", "")
         if search_query:
             users = User.objects.filter(
@@ -164,12 +152,11 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
                 "user_type": user.get_user_type_display(),
                 "bio": user.bio,
                 "alerts_created": user.alerts_created,
-                "alerts_verified": user.alerts_verified,
+                "alerts_verified": user.alerts_upvoted,
                 "is_verified": user.is_verified,
                 "is_suspended": user.is_suspended
             })
         return Response({
-            "user_type": user_type,
             "users": user_data,
             "page": page_obj.number,
             "num_pages": paginator.num_pages,
@@ -178,7 +165,7 @@ class ManageUsersPaginatedView(LoginRequiredMixin, APIView):
         }, status=status.HTTP_200_OK)
 
 
-class SuspendUnsuspendUser(LoginRequiredMixin, APIView):
+class SuspendUnsuspendUser(LoginRequiredMixin, View):
     """
     suspend or unsuspend a user based on the user_id.
 
@@ -191,20 +178,19 @@ class SuspendUnsuspendUser(LoginRequiredMixin, APIView):
         """
         Check if the user is an admin or ambassador.
         """
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         if not request.user.is_admin() and not request.user.is_ambassador():
-            messages.error(
-                request,
-                "You do not have permission to use this view."
-            )
             return redirect("home")
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self, request, *arg, **args):
+    def get(self, request, *arg, **kwargs):
         """
         get the user_id from the request and suspend or unsuspend the user.
         """
-        user_id = args.get("user_id")
-        print(user_id)
+        user_id = kwargs.get("user_id")
         user = get_object_or_404(User, id=user_id)
 
         if request.user.is_admin():
@@ -219,11 +205,12 @@ class SuspendUnsuspendUser(LoginRequiredMixin, APIView):
             user.is_suspended = False
             user.save()
             messages.success(
-                request, f"User {user.username} has been unsuspended.")
+                request, f"User {user.username} has been unsuspended.", extra_tags="user-manager")
         else:
             user.is_suspended = True
             user.save()
-            messages.info(request, f"User {user.username} has been suspended.")
+            messages.info(
+                request, f"User {user.username} has been suspended.", extra_tags="user-manager")
         return redirect("manage_users")
 
 

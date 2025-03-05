@@ -33,7 +33,6 @@ class Alert(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # This is what I need to change
     soft_deletion_time = models.DateTimeField(
         null=True, blank=True, help_text="Calculated time when this alert expires.")
 
@@ -113,11 +112,11 @@ class Alert(models.Model):
         """
         # Delete the associated hazard instance if it exists.
         if self.content_type and self.object_id:
-                try:
-                    hazard_instance = self.content_type.get_object_for_this_type(pk=self.object_id)
-                    hazard_instance.delete()
-                except self.content_type.model_class().DoesNotExist:
-                    pass
+            try:
+                hazard_instance = self.content_type.get_object_for_this_type(pk=self.object_id)
+                hazard_instance.delete()
+            except self.content_type.model_class().DoesNotExist:
+                pass
         return super().delete(*args, **kwargs)
     
     def __str__(self):
@@ -217,3 +216,19 @@ class Fire(models.Model):
 
     def __str__(self):
         return f"Fire (Intensity: {self.fire_intensity}, Contained: {self.is_contained})"
+
+class AlertUserVote(models.Model):
+    """
+    Model to store user votes on alerts.
+    """
+    alert = models.ForeignKey(Alert, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    vote = models.BooleanField(
+        help_text="True: Upvote, False: Downvote.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'alert')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.alert.id} - {self.vote}"

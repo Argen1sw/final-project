@@ -26,11 +26,12 @@ class User(AbstractUser):
     email = models.EmailField(blank=False, null=False)
     bio = models.TextField(
         blank=True, help_text="A brief description about the user.")
+    
     alerts_created = models.PositiveIntegerField(
         default=0, help_text="Number of alerts created by the user.")
-    alerts_verified = models.PositiveIntegerField(
-        default=0, help_text="Number of alerts verified by the user.")
-    # notification_preferences = models.JSONField(default=dict, null=True, help_text="User preferences for notifications.")
+    
+    alerts_upvoted = models.PositiveIntegerField(
+        default=0, help_text="Number of alerts upvoted by other users.")
 
     # Enhanced Security
     is_verified = models.BooleanField(

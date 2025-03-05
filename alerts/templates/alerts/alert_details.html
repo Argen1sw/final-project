@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}EnviroAlerts | Alert info {% endblock %}
+
+{% block map_features %} 
+  
+  {% comment %} Using downloaded version of leaflet -- https://leafletjs.com/download.html {% endcomment %}
+  <link rel="stylesheet" href="{% static 'alerts/js/leaflet/leaflet.css' %}" />
+  <script src="{% static 'alerts/js/leaflet/leaflet.js' %}"></script>
+
+  <link rel="stylesheet" href="{% static 'alerts/css/style.css' %}" />
+  <script>
+    const ICONS = {
+      earthquake_icon: "{% static 'alerts/images/earthquake.png' %}",
+      fire_icon: "{% static 'alerts/images/fire.png' %}",
+      flood_icon: "{% static 'alerts/images/flood.png' %}",
+      storm_icon: "{% static 'alerts/images/storm.png' %}",
+      tornado_icon: "{% static 'alerts/images/tornado.png' %}",
+    };
+
+    let data_Lng = "{{ alert.location.x }}";
+    let data_Lat = "{{ alert.location.y }}";
+    let hazard_type = "{{ alert.hazard_type }}";
+    let effect_radius = "{{ alert.effect_radius }}";
+  </script>
+{% endblock %}
+
+{% block content %}
+
+  <div class="container">
+    <h2>Alert Details</h2>
+    <div class="alert-details">
+      <h3>Hazard: {{ alert.hazard_type }}</h3>
+      <p><strong>hazard Details:</strong></p>
+      {% if alert.hazard_details %}
+        <ul>
+          {% for key, value in alert.hazard_details_dict.items %}
+          <p>{{ key|remove_underscores }}: {{ value }}</p>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <p><strong>Radius of effect:</strong> {{ alert.effect_radius }} m</p>
+      <p><strong>Alert Description:</strong> {{ alert.description }}</p>
+      <p><strong>Country:</strong> {{ alert.country }}</p>
+      <p><strong>City:</strong> {{ alert.city }}</p>
+      <p><strong>County:</strong> {{ alert.county }}</p>
+      <p><strong>Reported by:</strong> {{ alert.reported_by }}</p>
+      <p><strong>Source URL:</strong> <a href="{{ alert.source_url }}">{{ alert.source_url }}</a></p>
+      <p><strong>Created On:</strong> {{ alert.created_at }}</p>
+      <p><strong>Updated On:</strong> {{ alert.updated_at }}</p>
+      <p><strong>Expires On:</strong> {{ alert.soft_deletion_time }}</p>
+      <p><strong>Location:</strong>
+        <div id="map" style="height: 250px"></div>
+        
+      </p>
+      {% if user.is_authenticated %}
+      
+        <p><strong>Positive Votes:</strong> {{ alert.positive_votes }}</p>
+        <p><strong>Negative Votes:</strong> {{ alert.negative_votes }}</p>
+
+      
+        {% comment %} <form action="{% url 'vote_alert' alert.id %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="vote" value="1">
+          <button type="submit">Upvote</button>
+        </form>
+        <form action="{% url 'vote_alert' alert.id %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="vote" value="-1">
+          <button type="submit">Downvote</button>
+        </form> {% endcomment %}
+        
+        <form action="{% url 'vote_alert' alert.id %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="vote" value="1">
+          <button type="submit" 
+                  class="{% if user_vote and user_vote == True %}selected{% endif %}">
+            {% if user_vote and user_vote == True  %}Upvoted{% else %}Upvote{% endif %}
+          </button>
+        </form>
+        
+        <form action="{% url 'vote_alert' alert.id %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="vote" value="-1">
+          <button type="submit" 
+                  class="{% if not user_vote and user_vote != None %}selected{% endif %}">
+            {% if not user_vote and user_vote != None %}Downvoted{% else %}Downvote{% endif %}
+          </button>
+        </form>
+
+        {% if user.is_admin or user.is_ambassador %}
+          <a href="{% url 'edit_alert' alert.id %}">Edit</a>
+          {% comment %} <a href="{% url 'archive_alert' alert.id %}">Delete</a> {% endcomment %}
+        {% endif %}
+
+
+      {% endif %}
+      
+
+
+    </div>
+  </div>
+
+
+  <script src="{% static 'alerts/js/alert_details.js' %}"></script>
+{% endblock %}

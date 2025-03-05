@@ -91,7 +91,7 @@ fetch("/geojson/")
         <b>${hazard_type}</b><br>
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
-        <a href="${source_url}" target="_blank">More Info</a>
+        <a href="/alert/${feature.id}" target="_blank">More Details / Edit Alert</a>
       `);
       
       // Add the marker to the appropriate layer group
@@ -232,6 +232,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 
   fetch("/create_alerts/", {
     method: "POST",
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       "X-CSRFToken": getCSRFToken(),
@@ -302,7 +303,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
         <p>${alert.description}</p>
         <p>Location: Unknown</p>
         <p>Reported by: ${alert.reported_by || "Anonymous"}</p>
-        <p><a href="${alert.source_url || '#'}" target="_blank">More Info</a></p>
+        <p><a href="/alert/${alert.id} || '#'}" target="_blank">More Details/Edit Alert</a></p>
         <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
       `;
       alertsList.appendChild(alertDiv);
@@ -349,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <p>Location: ${alert.city || alert.county || alert.country || "Unknown"}</p>
             <p>Reported by: ${alert.reported_by || "Unknown"}</p>
             <p>${formatHazardDetails(alert.hazard_details)}</p>
-            <p><a href="${alert.source_url}" target="_blank">More Info</a></p>
+            <p><a href="/alert/${alert.id}" target="_blank">More Details / Edit Alert</a></p>
             <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
           `;
           alertDiv.addEventListener("click", function() {
