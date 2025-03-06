@@ -59,18 +59,6 @@
       
         <p><strong>Positive Votes:</strong> {{ alert.positive_votes }}</p>
         <p><strong>Negative Votes:</strong> {{ alert.negative_votes }}</p>
-
-      
-        {% comment %} <form action="{% url 'vote_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="vote" value="1">
-          <button type="submit">Upvote</button>
-        </form>
-        <form action="{% url 'vote_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="vote" value="-1">
-          <button type="submit">Downvote</button>
-        </form> {% endcomment %}
         
         <form action="{% url 'vote_alert' alert.id %}" method="post">
           {% csrf_token %}
@@ -91,7 +79,21 @@
         </form>
 
         {% if user.is_admin or user.is_ambassador %}
-          <a href="{% url 'edit_alert' alert.id %}">Edit</a>
+          <!-- Edit Button -->
+          <button type="button" onclick="showEditForm()" id="edit-button">
+            Edit Alert
+          </button>
+
+          <div id="edit-form">
+            <h2>Edit Alert</h2>
+            <form method="post">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit" name="edit_alert">Update Alert</button><br/><br/>
+            </form>
+            <button type="button" onclick="hideEditForm()">Cancel</button>
+          </div>
+
           {% comment %} <a href="{% url 'archive_alert' alert.id %}">Delete</a> {% endcomment %}
         {% endif %}
 

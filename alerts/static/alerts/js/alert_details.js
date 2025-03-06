@@ -52,3 +52,13 @@ const circle = L.circle([lat, lng], {
     fillColor: '#f03',
     fillOpacity: 0.2
 }).addTo(map);
+
+// Function to show the Edit Alert form
+function showEditForm(){
+    document.getElementById("edit-form").style.display = "block";
+}
+  
+// Function to hide the Edit Alert form
+function hideEditForm(){
+document.getElementById("edit-form").style.display = "none";
+}
