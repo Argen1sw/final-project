@@ -4,7 +4,7 @@ from django.urls import path, include
 # Local Imports
 from .views import (ManageAlertsView, CreateAlertView,
                     HomeView, AlertGeoJsonListView, AlertsPaginatedView,
-                    AlertDetailsView, AlertVoteView, AlertDetailsEditView)
+                    AlertVoteView, AlertDetailsAndEditView)
 
 
 urlpatterns = [
@@ -24,9 +24,9 @@ urlpatterns = [
     # Path endpoint for paginated alerts (Used for AJAX request)
     path('paginated_alerts/', AlertsPaginatedView.as_view(), name='paginated_alert'),
     
-    path('alert/<int:pk>/', AlertDetailsView.as_view(), name='alert_details'),
+    path('alert/<int:pk>/', AlertDetailsAndEditView.as_view(), name='alert_details'),
     
-    path('alert/<int:pk>/edit/', AlertDetailsEditView.as_view(), name='edit_alert'),
+    path('alert/<int:pk>/edit/', AlertDetailsAndEditView.as_view(), name='edit_alert'),
  
     path('alert/<int:pk>/vote', AlertVoteView.as_view(), name='vote_alert'),  
 ]

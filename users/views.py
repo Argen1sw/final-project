@@ -16,8 +16,6 @@ from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponseForbidden
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
 
 # Local Imports
 from .forms import (RegisterForm, LoginForm,
@@ -217,8 +215,11 @@ class SuspendUnsuspendUser(LoginRequiredMixin, View):
 class UserProfileView(LoginRequiredMixin, UpdateView):
     """
     View to handle updating user profile details including password and email.
-    More information can be found in the link below:
-    https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
+    
+    * Multiple forms are used in this view to handle updating user information.
+    * The user can update their profile information, password, and email.
+    * The user can only update their own profile.
+    * Reference: https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
     """
     model = User
     form_class = UserProfileForm

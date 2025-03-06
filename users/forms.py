@@ -1,11 +1,19 @@
+# Library/Frameworks Imporst
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
+# Local Imports
 from .models import User
 
 # Register should include a mechanism that allows user to register
 # with their google account.
 class RegisterForm(UserCreationForm):
     """
+    View class that handles user registration.
+    
+    * UserCreationForm: A form that creates a user, with no privileges, 
+        from the given username and password.
+    * Fields: username, email, password1, password2
     """
     class Meta:
         model = User
@@ -18,7 +26,7 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError("This email is already in use.")
         return email
 
-# This will need to be extended to be able to accept google login and
+# This will need to be implemented in the future to be able to accept google login and
 # email as a form of validation too
 class LoginForm(AuthenticationForm):
     pass

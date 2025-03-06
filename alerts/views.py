@@ -3,14 +3,16 @@ import logging
 
 # Django Imports
 from django.shortcuts import redirect, get_object_or_404
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from rest_framework.views import APIView
 from django.views import View
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.gis.geos import Point
 from geopy.geocoders import Nominatim
-from django.views.generic import TemplateView, DetailView, UpdateView
+from django.views.generic import (
+    TemplateView, DetailView, DeleteView, UpdateView
+)
 from django.core.paginator import Paginator
 from rest_framework import generics
 from django.db.models import Q
@@ -19,10 +21,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
+from django.urls import reverse
+
 
 # Local Imports
 from .serializers import AlertGeoSerializer
-from .models import (Alert, Earthquake, Flood, Tornado, Fire, AlertUserVote) 
+from .models import (Alert, Earthquake, Flood, Tornado, Fire, AlertUserVote)
 from .forms import AlertForm
 
 # Simple mapping of hazard types to model names
@@ -34,6 +38,7 @@ HAZARD_MODEL_MAPPING = {
     'tornado': Tornado,
     'fire': Fire,
 }
+
 
 class HomeView(TemplateView):
     """
@@ -50,11 +55,12 @@ class HomeView(TemplateView):
         paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
-        
+
         # Inject hazard type information on each alert
         for alert in page_obj:
             alert.hazard_type = alert.content_type.model if alert.content_type else None
-            alert.hazard_details_dict = model_to_dict(alert.hazard_details) if alert.hazard_details else None
+            alert.hazard_details_dict = model_to_dict(
+                alert.hazard_details) if alert.hazard_details else None
             del alert.hazard_details_dict['id']
             for key in alert.hazard_details_dict:
                 if alert.hazard_details_dict[key] is None:
@@ -79,11 +85,12 @@ class ManageAlertsView(LoginRequiredMixin, TemplateView):
         paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
-        
+
         # Inject hazard type information on each alert
         for alert in page_obj:
             alert.hazard_type = alert.content_type.model if alert.content_type else None
-            alert.hazard_details_dict = model_to_dict(alert.hazard_details) if alert.hazard_details else None
+            alert.hazard_details_dict = model_to_dict(
+                alert.hazard_details) if alert.hazard_details else None
             del alert.hazard_details_dict['id']
             for key in alert.hazard_details_dict:
                 if alert.hazard_details_dict[key] is None:
@@ -132,7 +139,7 @@ class CreateAlertView(APIView):
         effect_radius = data.get('effect_radius')
         if effect_radius is not None and effect_radius > 100000 or effect_radius < 0:
             return Response({"error": "The radius of effect cannot exceed 100 km (100,000 meters)."}, status=400)
-        
+
         # Reverse Geocoding
         try:
             geolocator = Nominatim(user_agent="enviroalerts")
@@ -149,19 +156,20 @@ class CreateAlertView(APIView):
             current_user.save()
         else:
             return Response({"error": "You must be logged in to create an alert."}, status=400)
-                
-        # Handles the Hazard type 
+
+        # Handles the Hazard type
         hazard_model_name = data.get('hazard_type')
         hazard_data = data.get('hazard_data', {})
         content_type = None
         object_id = None
-        
+
         # Preprocess hazard_data to ensure no empty strings are passed to the model
         hazard_data = {
-            key: (value if not (isinstance(value, str) and value.strip() == "") else None)
+            key: (value if not (isinstance(value, str)
+                  and value.strip() == "") else None)
             for key, value in hazard_data.items()
         }
-        
+
         if hazard_model_name:
             model_class = HAZARD_MODEL_MAPPING.get(hazard_model_name.lower())
             if not model_class:
@@ -169,10 +177,10 @@ class CreateAlertView(APIView):
             try:
                 hazard_instance = model_class.objects.create(**hazard_data)
                 content_type = ContentType.objects.get_for_model(model_class)
-                object_id = hazard_instance.id                
+                object_id = hazard_instance.id
             except Exception as e:
                 return Response({"error": f"Error creating Hazard: {str(e)}"}, status=400)
-        
+
         # Create alert
         try:
             alert = Alert.objects.create(
@@ -224,6 +232,7 @@ class AlertsPaginatedView(APIView):
     * Supports search queries.
     * Paginates the alerts.
     """
+
     def get(self, request, *args, **kwargs):
         """
         Get all alerts if no search query is provided and paginate the alerts.
@@ -245,7 +254,8 @@ class AlertsPaginatedView(APIView):
                 is_active=True
             ).order_by('-created_at')
         else:
-            alerts = Alert.objects.filter(is_active=True).order_by('-created_at')
+            alerts = Alert.objects.filter(
+                is_active=True).order_by('-created_at')
 
         paginator = Paginator(alerts, 4)
         page_number = request.GET.get('page', 1)
@@ -279,47 +289,88 @@ class AlertsPaginatedView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class AlertDetailsView(DetailView):
+class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
     """
-    View class for the alert details page.
-    
-    * Displays the details of a specific alert.
-    * Displays the hazard type and details.
-    * Displays the alert's location on a map.
+    Update view for displaying and editing an alert.
+
+    * Displays the alert details, including hazard type and location.
+    * Allows the user to edit the alert if they have permission.
     """
     model = Alert
     template_name = 'alerts/alert_details.html'
     context_object_name = 'alert'
-    
+    form_class = AlertForm
+
+    def get_object(self, queryset=None):
+        """
+        Retrieves the alert object and ensures the user has permission to edit.
+        """
+        alert = get_object_or_404(Alert, pk=self.kwargs.get('pk'))
+
+        # If the user does not have permission, return Forbidden response
+        if not self.user_can_edit(alert):
+            return HttpResponseForbidden("You do not have permission to edit this alert.")
+
+        return alert
+
     def get_context_data(self, **kwargs):
         """
-        Get the context data for the alert details page.
-        
-        * Injects the hazard type and details into the context.
-        * 
+        Injects additional data into the template context, including hazard type and user vote.
         """
         context = super().get_context_data(**kwargs)
         alert = context['alert']
+
+        # Add hazard type and details
+        context = super().get_context_data(**kwargs)
+        alert = context['alert']
         alert.hazard_type = alert.content_type.model if alert.content_type else None
-        alert.hazard_details_dict = model_to_dict(alert.hazard_details) if alert.hazard_details else None
+        alert.hazard_details_dict = model_to_dict(
+            alert.hazard_details) if alert.hazard_details else None
         del alert.hazard_details_dict['id']
-        
+
         for key in alert.hazard_details_dict:
             if alert.hazard_details_dict[key] is None:
                 alert.hazard_details_dict[key] = "N/A"
-        
+
         # Insert the user's vote status
         if self.request.user.is_authenticated:
-            user_vote = AlertUserVote.objects.filter(alert=alert, user=self.request.user).first()
+            user_vote = AlertUserVote.objects.filter(
+                alert=alert, user=self.request.user).first()
             context['user_vote'] = user_vote.vote if user_vote else None
-              
+
         return context
-    
-# Edit Alert View
-# - Only the user who created the alert, admin and ambassador can edit it
-#  - The user can edit the alert's description, source URL, and effect radius
-class AlertDetailsEditView(UpdateView):
+
+    def user_can_edit(self, alert):
+        """
+        Checks if the user has permission to edit the alert.
+        """
+        return (alert.reported_by == self.request.user or
+                self.request.user.is_admin() or
+                self.request.user.is_ambassador())
+
+    def form_valid(self, form):
+        """
+        Handles form submission and ensures only authorized users can edit.
+        """
+        alert = form.save()
+
+        if not self.user_can_edit(alert):
+            return HttpResponseForbidden("You do not have permission to edit this alert.")
+
+        alert.save()
+        
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """
+        Redirects to the alert details page after successful editing.
+        """
+        return reverse('alert_details', kwargs={'pk': self.object.pk})
+
+
+class AlertDeleteView(LoginRequiredMixin, DeleteView):
     pass
+
 
 class AlertVoteView(LoginRequiredMixin, View):
     """
@@ -338,18 +389,18 @@ class AlertVoteView(LoginRequiredMixin, View):
         * Creates an instance of the vote model.
         """
         alert = get_object_or_404(Alert, pk=pk)
-        
-        # retrieve the user that owns the alert 
+
+        # retrieve the user that owns the alert
         user = alert.reported_by
 
         vote_value = request.POST.get('vote')
-        
+
         if vote_value not in ['1', '-1']:
             return HttpResponseBadRequest("Invalid vote type.")
-        
-        is_upvote = (vote_value == '1')        
 
-        # 
+        is_upvote = (vote_value == '1')
+
+        #
         user_vote, created = AlertUserVote.objects.get_or_create(
             alert=alert,
             user=request.user,
@@ -358,7 +409,7 @@ class AlertVoteView(LoginRequiredMixin, View):
 
         # Update the vote count for the alert
         # Update the Alert's owner upvote count
-        if not created: 
+        if not created:
             if user_vote.vote != is_upvote:
                 # Change the vote if the user votes differently
                 if is_upvote:
@@ -390,7 +441,48 @@ class AlertVoteView(LoginRequiredMixin, View):
                 alert.positive_votes += 1
                 user.alerts_upvoted += 1
             else:
-                alert.negative_votes += 1         
+                alert.negative_votes += 1
         user.save()
         alert.save()
         return redirect('alert_details', pk=pk)
+
+
+
+
+# class AlertDetailsView(DetailView):
+#     """
+#     View class for the alert details page.
+
+#     * Displays the details of a specific alert.
+#     * Displays the hazard type and details.
+#     * Displays the alert's location on a map.
+#     """
+#     model = Alert
+#     template_name = 'alerts/alert_details.html'
+#     context_object_name = 'alert'
+
+#     def get_context_data(self, **kwargs):
+#         """
+#         Get the context data for the alert details page.
+
+#         * Injects the hazard type and details into the context.
+#         * 
+#         """
+#         context = super().get_context_data(**kwargs)
+#         alert = context['alert']
+#         alert.hazard_type = alert.content_type.model if alert.content_type else None
+#         alert.hazard_details_dict = model_to_dict(
+#             alert.hazard_details) if alert.hazard_details else None
+#         del alert.hazard_details_dict['id']
+
+#         for key in alert.hazard_details_dict:
+#             if alert.hazard_details_dict[key] is None:
+#                 alert.hazard_details_dict[key] = "N/A"
+
+#         # Insert the user's vote status
+#         if self.request.user.is_authenticated:
+#             user_vote = AlertUserVote.objects.filter(
+#                 alert=alert, user=self.request.user).first()
+#             context['user_vote'] = user_vote.vote if user_vote else None
+
+#         return context
