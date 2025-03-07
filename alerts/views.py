@@ -289,7 +289,7 @@ class AlertsPaginatedView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
+class AlertDetailsAndEditView(UpdateView):
     """
     Update view for displaying and editing an alert.
 
@@ -303,14 +303,9 @@ class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         """
-        Retrieves the alert object and ensures the user has permission to edit.
+        Retrieves the alert object.
         """
         alert = get_object_or_404(Alert, pk=self.kwargs.get('pk'))
-
-        # If the user does not have permission, return Forbidden response
-        if not self.user_can_edit(alert):
-            return HttpResponseForbidden("You do not have permission to edit this alert.")
-
         return alert
 
     def get_context_data(self, **kwargs):
@@ -319,10 +314,28 @@ class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
         """
         context = super().get_context_data(**kwargs)
         alert = context['alert']
+        
+        # Compute permission flags for the template.
+        can_edit = (
+            self.request.user.is_authenticated and 
+            (alert.reported_by == self.request.user or 
+             self.request.user.is_admin() or 
+             self.request.user.is_ambassador())
+        )
+        can_vote = self.request.user.is_authenticated
+        can_archive = (
+            self.request.user.is_authenticated and 
+            (self.request.user.is_admin() or self.request.user.is_ambassador())
+        )
+        
+        context.update({
+            'can_edit': can_edit,
+            'can_vote': can_vote,
+            'can_archive': can_archive,
+            'can_delete': can_edit,
+        })
 
         # Add hazard type and details
-        context = super().get_context_data(**kwargs)
-        alert = context['alert']
         alert.hazard_type = alert.content_type.model if alert.content_type else None
         alert.hazard_details_dict = model_to_dict(
             alert.hazard_details) if alert.hazard_details else None
@@ -344,9 +357,10 @@ class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
         """
         Checks if the user has permission to edit the alert.
         """
-        return (alert.reported_by == self.request.user or
-                self.request.user.is_admin() or
-                self.request.user.is_ambassador())
+        return (self.request.user.is_authenticated and 
+                (alert.reported_by == self.request.user or
+                 self.request.user.is_admin() or
+                 self.request.user.is_ambassador()))
 
     def form_valid(self, form):
         """
@@ -357,8 +371,6 @@ class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
         if not self.user_can_edit(alert):
             return HttpResponseForbidden("You do not have permission to edit this alert.")
 
-        alert.save()
-        
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -369,7 +381,38 @@ class AlertDetailsAndEditView(LoginRequiredMixin, UpdateView):
 
 
 class AlertDeleteView(LoginRequiredMixin, DeleteView):
-    pass
+    """
+    View class for deleting an alert.
+    """
+
+    model = Alert
+    context_object_name = 'alert'
+
+    def get_object(self, queryset=None):
+        """
+        Retrieves the alert object and ensures the user has permission to delete.
+        """
+        alert = get_object_or_404(Alert, pk=self.kwargs.get('pk'))
+
+        # If the user does not have permission, return Forbidden response
+        if not self.user_can_delete(alert):
+            return HttpResponseForbidden("You do not have permission to delete this alert.")
+
+        return alert
+
+    def user_can_delete(self, alert):
+        """
+        Checks if the user has permission to delete the alert.
+        """
+        return (alert.reported_by == self.request.user or
+                self.request.user.is_admin() or
+                self.request.user.is_ambassador())
+
+    def get_success_url(self):
+        """
+        Redirects to the manage alerts page after successful deletion.
+        """
+        return reverse('manage_alerts')
 
 
 class AlertVoteView(LoginRequiredMixin, View):
@@ -447,42 +490,42 @@ class AlertVoteView(LoginRequiredMixin, View):
         return redirect('alert_details', pk=pk)
 
 
+class ArchiveAlertView(LoginRequiredMixin, UpdateView):
+    """
+    View class for archiving an alert.
 
+    * Handles the soft deletion of an alert.
+    * Only admin and ambassador users can archive alerts.
+    """
 
-# class AlertDetailsView(DetailView):
-#     """
-#     View class for the alert details page.
+    model = Alert
+    fields = ['is_active']
+    template_name = 'alerts/alert_archive.html'
 
-#     * Displays the details of a specific alert.
-#     * Displays the hazard type and details.
-#     * Displays the alert's location on a map.
-#     """
-#     model = Alert
-#     template_name = 'alerts/alert_details.html'
-#     context_object_name = 'alert'
+    def get_object(self, queryset=None):
+        """
+        Retrieves the alert object and ensures the user has permission to archive.
+        """
+        alert = get_object_or_404(Alert, pk=self.kwargs.get('pk'))
 
-#     def get_context_data(self, **kwargs):
-#         """
-#         Get the context data for the alert details page.
+        # If the user does not have permission, return Forbidden response
+        if not self.user_can_archive(alert):
+            return HttpResponseForbidden("You do not have permission to archive this alert.")
 
-#         * Injects the hazard type and details into the context.
-#         * 
-#         """
-#         context = super().get_context_data(**kwargs)
-#         alert = context['alert']
-#         alert.hazard_type = alert.content_type.model if alert.content_type else None
-#         alert.hazard_details_dict = model_to_dict(
-#             alert.hazard_details) if alert.hazard_details else None
-#         del alert.hazard_details_dict['id']
+        # Set the alert to inactive
+        alert.is_active = False
+        alert.save()
 
-#         for key in alert.hazard_details_dict:
-#             if alert.hazard_details_dict[key] is None:
-#                 alert.hazard_details_dict[key] = "N/A"
+        return alert
 
-#         # Insert the user's vote status
-#         if self.request.user.is_authenticated:
-#             user_vote = AlertUserVote.objects.filter(
-#                 alert=alert, user=self.request.user).first()
-#             context['user_vote'] = user_vote.vote if user_vote else None
+    def user_can_archive(self, alert):
+        """
+        Checks if the user has permission to archive the alert.
+        """
+        return (self.request.user.is_admin() or self.request.user.is_ambassador())
 
-#         return context
+    def get_success_url(self):
+        """
+        Redirects to the manage alerts page after successful archiving.
+        """
+        return reverse('manage_alerts')

@@ -1,4 +1,4 @@
-// Define custom icons for different hazard types
+    // Define custom icons for different hazard types
 const hazardIcons = {
     // Default icon (can use Leaflet's default)
     default: L.icon({

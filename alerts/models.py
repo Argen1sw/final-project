@@ -34,7 +34,7 @@ class Alert(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     soft_deletion_time = models.DateTimeField(
-        null=True, blank=True, help_text="Calculated time when this alert expires.")
+        help_text="Calculated time when this alert expires and gets archive.")
 
     country = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
@@ -50,9 +50,9 @@ class Alert(models.Model):
     negative_votes = models.PositiveIntegerField(
         default=0, help_text="Number of negative votes.")
 
-    # Soft Delete Field
+    # Archive Alert Field
     is_active = models.BooleanField(
-        default=True, help_text="Soft-delete flag. If False, the alert is considered deleted.")
+        default=True, help_text="Soft-delete flag. If False, the alert is considered Archived.")
 
     # ContentType Fields for Hazard-Specific Models
     content_type = models.ForeignKey(
@@ -62,7 +62,10 @@ class Alert(models.Model):
 
     def save(self, *args, **kwargs):
         """
-
+        Override the save method to set default values for the alert.
+        
+        * If the effect radius is not set, it will be set based on the hazard type.
+        * If the deletion time is not set, it will be calculated based on the hazard type.
         """
         hazard_name = self.content_type.model if self.content_type else None
 
@@ -99,12 +102,6 @@ class Alert(models.Model):
 
         super().save(*args, **kwargs)
 
-    def soft_delete(self):
-        """
-        Instead of permanently deleting the record, mark it as inactive.
-        """
-        self.is_active = False
-        self.save(update_fields=['is_active'])
 
     def delete(self, *args, **kwargs):
         """
