@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function() {
             <strong>Account Suspended: ${user.is_suspended}</strong><br>
           `;
 
-
           // Append the user details div to the user list div
           userListDiv.appendChild(userDetailsDiv);
 
@@ -68,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
           }
           if (data.user_type === 2){ // 2 === ambassador
-            if (user.user_type === 'normal user'){
+            if (user.user_type === 1){ // 1 === normal user
               if (user.is_suspended) {
                 // const unsuspendButton = document.createElement('a');
                 unsuspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';

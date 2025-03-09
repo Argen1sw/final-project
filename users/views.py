@@ -16,6 +16,8 @@ from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponseForbidden
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 # Local Imports
 from .forms import (RegisterForm, LoginForm,
@@ -58,10 +60,16 @@ class CustomLoginView(LoginView):
     * If the user is already logged in, redirect to the home page.
     * If the user is not logged in, display the login form.
     """
-    form_class = LoginForm
+    # form_class = LoginForm
     template_name = "users/login.html"
 
     def form_valid(self, form):
+        user = form.get_user()
+        
+        if user.is_suspended:
+            form.add_error(None, "Your account is suspended. Please contact support.")
+            return self.form_invalid(form)
+        
         """Security check complete. Log the user in."""
         return super().form_valid(form)
 
@@ -109,6 +117,9 @@ class ManageUsersPaginatedView(APIView):
     * Ambassador users can only manage normal users.
     * This view returns a JSON response for pagination purposes.
     """
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+            
     def dispatch(self, request, *args, **kwargs):
         """
         Check if the user is an admin or ambassador.
@@ -134,12 +145,15 @@ class ManageUsersPaginatedView(APIView):
             ).order_by("-date_joined")
         else:
             users = User.objects.all().order_by("-date_joined")
-
+        
+        # Extract user type from the request
+        user_type = request.user.user_type
+        
         # Paginate the users
         paginator = Paginator(users, 2)
         page_number = request.GET.get("page", 1)
         page_obj = paginator.get_page(page_number)
-
+        
         user_data = []
         for user in page_obj:
             user_data.append({
@@ -147,7 +161,7 @@ class ManageUsersPaginatedView(APIView):
                 "username": user.username,
                 "email": user.email,
                 "date_joined": user.date_joined,
-                "user_type": user.get_user_type_display(),
+                "user_type": user.user_type,
                 "bio": user.bio,
                 "alerts_created": user.alerts_created,
                 "alerts_verified": user.alerts_upvoted,
@@ -156,6 +170,7 @@ class ManageUsersPaginatedView(APIView):
             })
         return Response({
             "users": user_data,
+            "user_type": user_type,
             "page": page_obj.number,
             "num_pages": paginator.num_pages,
             "has_next": page_obj.has_next(),
