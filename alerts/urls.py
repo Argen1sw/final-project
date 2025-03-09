@@ -1,5 +1,5 @@
 # Standard library imports
-from django.urls import path, include
+from django.urls import path
 
 # Local Imports
 from .views import (ManageAlertsView, CreateAlertView,
