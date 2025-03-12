@@ -51,7 +51,8 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        alerts = Alert.objects.all().order_by('-created_at')
+        # filter alerts by the is_active field
+        alerts = Alert.objects.filter(is_active=True).order_by('-created_at')
         paginator = Paginator(alerts, 4)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
@@ -64,7 +65,7 @@ class HomeView(TemplateView):
             del alert.hazard_details_dict['id']
             for key in alert.hazard_details_dict:
                 if alert.hazard_details_dict[key] is None:
-                    alert.hazard_details_dict[key] = "N/A"
+                    alert.hazard_details_dict[key] = "Not provided"
         context['page_obj'] = page_obj
         return context
 
