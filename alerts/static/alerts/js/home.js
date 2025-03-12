@@ -39,14 +39,6 @@ L.tileLayer(
   {}
 ).addTo(map);
 
-// // Alerts default radius of effect in meters
-// const DEFAULT_RADIUS = {
-//   earthquake: 50000,    
-//   flood: 10000,
-//   tornado: 5000,
-//   fire: 5000
-// };
-
 // layer group for markers types of alerts -- Adjust this whenever a new hazard type is added
 // create an dict of layer groups for each hazard type
 layerGroups = {
@@ -92,6 +84,7 @@ fetch("/geojson/")
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
         <a href="${source_url}" target="_blank">More Info</a>
+        <a href="/alert/${feature.id}" target="_blank">More Details / Edit Alert</a>
       `);
       
       // Add the marker to the appropriate layer group

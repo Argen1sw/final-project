@@ -72,10 +72,10 @@
               <p>No hazard details available.</p>
             {% endif %}
 
-
             <p>
-              <a href="{{ alert.source_url }}" target="_blank">More Info</a>
+              <a href="{% url 'alert_details' alert.id %}" target="_blank">More Details / Edit Alert</a>
             </p>
+            
             <p><em>Created on: {{ alert.created_at }}</em></p>
           </div>
         {% endfor %}
