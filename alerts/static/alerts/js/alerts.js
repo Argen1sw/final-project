@@ -118,6 +118,14 @@ fetch("/geojson/")
       });
       circleLayer.addLayer(circle);
 
+      // Combine the marker and circle into a feature group
+      const alertGroup = L.featureGroup([marker, circle]);
+
+      if (layerGroups[hazard_type]) {
+        layerGroups[hazard_type].addLayer(alertGroup);
+      } else {
+        console.warn(`No layer group for hazard type: ${hazard_type}`);
+      }
     });
     
     // Create an object to hold the layer groups for the control
