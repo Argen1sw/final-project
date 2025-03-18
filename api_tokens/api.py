@@ -31,6 +31,8 @@ class CreateAlertAPIView(generics.GenericAPIView,
     """
     API view to create an alert.
 
+    * Request limit is 10 per day per user token.
+    
     **Supported alert types and its fields:**
       - **earthquake**: hazard_data: {magnitude:number, depth:number, epicenter_description:string}.
       - **flood**: hazard_data: {severity:low||moderate||major, water_level:number(meters), is_flash_flood:boolean}.
