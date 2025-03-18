@@ -31,10 +31,5 @@ urlpatterns = [
 
     # User Profile path endpoint
     path('profile/', UserProfileView.as_view(), name='profile')
-    
-    
-    
-    # Edit User Profile path endpoint
-    # path('edit_profile/', editUserProfileView.as_view(), 
-    #     name='edit_user_profile')
+        
 ]
