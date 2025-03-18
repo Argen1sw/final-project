@@ -89,10 +89,17 @@ DATABASES = {
 
 # Rest Framework Settings
 # Added custom authentication class for token-based authentication for the API 
+# https://www.django-rest-framework.org/api-guide/throttling/
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'api_tokens.authentication.CustomTokenAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/day',  # Limit each user to 10 requests per day
+    }
 }
 
 # Password validation

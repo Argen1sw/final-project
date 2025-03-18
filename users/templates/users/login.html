@@ -1,20 +1,23 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <link rel="stylesheet" href="{% static 'users/css/style.css' %}">
-</head>
-<body>
-    <div class="form-container">
-      <h2>Login</h2>
-      <form method="post">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <button type="submit">Login</button>
-      </form>
-      <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
-      {% comment %} <p>Forgot password? <a href="{% url 'forgot_password' %}">Reset password</a></p> {% endcomment %}
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %} 
+{% block title %}EnviroAlerts | login {% endblock %} 
+
+{% block map_features %}
+  <link rel="stylesheet" href="{% static 'users/css/style.css' %}">
+{% endblock %} 
+
+{% block content %}
+
+  <div class="form-container">
+    <h2>Login</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+    {% comment %} <p>Forgot password? <a href="{% url 'forgot_password' %}">Reset password</a></p> {% endcomment %}
+  </div>
+
+{% endblock %}
+

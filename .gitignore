@@ -1,2 +1,7 @@
 final_venv
 celerybeat-schedule
+
+# Byte-compiled / optimized / DLL files
+# Python compiled files
+__pycache__
+*.pyc
