@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import generics, mixins
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework.throttling import UserRateThrottle
 
 # Local Imports
 from alerts.models import Alert
@@ -30,6 +31,8 @@ class CreateAlertAPIView(generics.GenericAPIView,
     """
     API view to create an alert.
 
+    * Request limit is 10 per day per user token.
+    
     **Supported alert types and its fields:**
       - **earthquake**: hazard_data: {magnitude:number, depth:number, epicenter_description:string}.
       - **flood**: hazard_data: {severity:low||moderate||major, water_level:number(meters), is_flash_flood:boolean}.
@@ -38,6 +41,7 @@ class CreateAlertAPIView(generics.GenericAPIView,
     """
     permission_classes = [IsAuthenticated]
     serializer_class = CreateAlertSerializer
+    throttle_classes = [UserRateThrottle] # Throttle to limit the number of requests per token in this case
     
     @swagger_auto_schema(
         responses={201: openapi.Response("Alert created successfully"), 400: "Bad Request"}
