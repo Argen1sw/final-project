@@ -3,5 +3,8 @@ celerybeat-schedule
 
 # Byte-compiled / optimized / DLL files
 # Python compiled files
-__pycache__
+enviroAlerts/__pycache__
 *.pyc
+
+local-cdn
+node_modules
