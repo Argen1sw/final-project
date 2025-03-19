@@ -2,7 +2,7 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}EnviroAlerts | Everywhere for Everyone {% endblock %}
+{% block title %}EnviroAlerts | Everywhere for Everyone{% endblock %}
 
 {% block map_features %} 
   <!-- jQuery UI -->
@@ -30,87 +30,96 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Main Content -->
-  <div class="container">
-    <!-- Header -->
-    <div class="header-title">EnviroAlerts</div>
-
-    <!-- Map Section -->
-    <div class="map-container">
-      <h2 class="section-title">Interactive Map</h2>
-      <div id="map" style="height: 600px"></div>
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <!-- Map Section: -->
+    <div class="mb-12">
+      <div id="map" class="w-full h-[calc(100dvh-240px)] rounded-lg shadow-lg"></div>
     </div>
 
     <!-- Search Bar -->
-    <div class="search-container">
-      <h2 class="section-title">Search Alerts</h2>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Search Alerts</h2>
       <input
         type="text"
         id="search-input"
         placeholder="Search by location, hazard type, etc."
+        class="w-full p-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
       />
     </div>
         
-    <!-- Alerts List -->
-    <div class="alerts-container">
-      <h2 class="section-title">Alerts List</h2>
-      <div id="alertsList">
+    <!-- Alerts List with Collapsible Items -->
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Alerts List</h2>
+      <div id="alertsList" class="space-y-2">
         {% for alert in page_obj %}
-          <div class="alert-item"
-              data-Lat="{{ alert.location.y }}",
-              data-Lng="{{ alert.location.x }}">
-            <strong>{{ alert.hazard_type }}</strong>
-            <p>{{ alert.description }}</p>
-            <p>Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}</p>
-            <p>Reported by: {{ alert.reported_by|default:"Unknown" }}</p>
-
+        <details class="alert-item border border-gray-700 rounded-lg" data-lat="{{ alert.location.y }}" data-lng="{{ alert.location.x }}">
+          <summary class="p-2 cursor-pointer bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-gray-100">
+            <span class="font-bold">{{ alert.hazard_type }}</span>
+            <span class="text-sm text-gray-300">
+              Location: {{ alert.city|default:alert.county|default:alert.country|default:"Unknown" }}
+            </span>
+          </summary>
+          <div class="p-2 bg-gray-800">
+            <p class="text-gray-300">{{ alert.description }}</p>
+            <p class="mt-1 text-gray-400">Reported by: {{ alert.reported_by|default:"Unknown" }}</p>
             {% if alert.hazard_details_dict %}
-              {% for key, value in alert.hazard_details_dict.items %}
-                <p>{{ key|remove_underscores }}: {{ value }}</p>
-              {% endfor %}
+              <div class="mt-1 space-y-1">
+                {% for key, value in alert.hazard_details_dict.items %}
+                  <p class="text-gray-300">
+                    <span class="font-medium">{{ key|remove_underscores }}:</span> {{ value }}
+                  </p>
+                {% endfor %}
+              </div>
             {% else %}
-              <p>No hazard details available.</p>
+              <p class="mt-1 text-gray-400">No hazard details available.</p>
             {% endif %}
-
-            <p>
-              <a href="{% url 'alert_details' alert.id %}" target="_blank">More Details / Edit Alert</a>
+            <p class="mt-1">
+              <a href="{% url 'alert_details' alert.id %}" target="_blank" class="text-indigo-400 hover:underline">
+                More Details
+              </a>
             </p>
-            
-            <p><em>Created on: {{ alert.created_at }}</em></p>
+            <p class="mt-1 text-xs text-gray-400"><em>Created on: {{ alert.created_at }}</em></p>
+            <!-- Dedicated button to show the alert on the map -->
+            <button
+              class="show-map-btn mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 focus:outline-none"
+              data-lat="{{ alert.location.y }}"
+              data-lng="{{ alert.location.x }}"
+            >
+              Show in Map
+            </button>
           </div>
+        </details>
         {% endfor %}
       </div>
 
       <!-- Pagination Controls -->
-      <div class="pagination">
-        <button id="first-page">First</button>
-        <button id="prev-page">Previous</button>
-        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}">
+      <div class="pagination flex items-center justify-center mt-4 space-x-2">
+        <button id="first-page" class="px-2 py-1 border border-gray-700 rounded hover:bg-gray-700">First</button>
+        <button id="prev-page" class="px-2 py-1 border border-gray-700 rounded hover:bg-gray-700">Previous</button>
+        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}" class="text-gray-300 text-sm">
           Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         </span>
-        <button id="next-page">Next</button>
-        <button id="last-page">Last</button>
+        <button id="next-page" class="px-2 py-1 border border-gray-700 rounded hover:bg-gray-700">Next</button>
+        <button id="last-page" class="px-2 py-1 border border-gray-700 rounded hover:bg-gray-700">Last</button>
       </div>
-    </div> 
+    </div>
 
     <!-- Concept Description -->
-    <div class="section">
-      <h2>Concept description</h2>
-      <p>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Concept Description</h2>
+      <p class="text-gray-300">
         Explanation of the services offered and the vision of EnviroAlerts.
       </p>
     </div>
 
     <!-- Most Popular IOT Resources -->
-    <div class="section">
-      <h2>Most popular IOT resources</h2>
-      <p>Placeholder content for IOT resources section.</p>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Most Popular IOT Resources</h2>
+      <p class="text-gray-300">Placeholder content for IOT resources section.</p>
     </div>
   </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{% static 'alerts/js/home.js' %}"></script>
-
 {% endblock %}
-

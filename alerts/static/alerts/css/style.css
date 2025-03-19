@@ -1,29 +1,29 @@
 /* home.css */
 
 /* General Reset */
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
+} */
+/* 
 body {
   font-family: Arial, sans-serif;
   line-height: 1.6;
   background-color: #f9f9f9;
-}
+} */
 
 /* Navigation Bar */
-nav {
+/* nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #f4f4f4;
   padding: 10px 20px;
   border-bottom: 1px solid #ddd;
-}
+} */
 
-nav a {
+/* nav a {
   text-decoration: none;
   color: #333;
   font-weight: bold;
@@ -33,10 +33,10 @@ nav a {
 nav a:hover {
   background-color: #ddd;
   border-radius: 3px;
-}
+} */
 
 /* Main Content */
-.container {
+/* .container {
   max-width: 1200px;
   margin: 20px auto;
   padding: 0 20px;
@@ -84,23 +84,21 @@ nav a:hover {
   font-weight: bold;
   margin: 20px 0;
   color: #333;
-}
+} */
+
+
 
 /* CSS from the map/Alerts.html  */
-
 /* General Reset */
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
-body {
-  font-family: Arial, sans-serif;
-}
 
 /* Navigation Bar */
-nav {
+/* nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -119,18 +117,21 @@ nav a {
 nav a:hover {
   background-color: #ddd;
   border-radius: 3px;
-}
+} */
+
+
 
 /* Main Map Section */
-#map {
+/* #map {
   width: 100%;
   height: 400px;
   margin: 20px auto;
   border: 1px solid #ddd;
-}
+} */
 
 /* Alerts List */
-.alert-item {
+
+/* .alert-item {
   border: 1px solid #ccc;
   padding: 10px;
   cursor: pointer;
@@ -138,28 +139,29 @@ nav a:hover {
   border-radius: 5px;
   background-color: #fafafa;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
+} */
 
-.alert-item strong {
+/* .alert-item strong {
   font-size: 18px;
   color: #333;
-}
+} */
 
-.alert-item p {
+/* .alert-item p {
   font-size: 14px;
   color: #666;
   margin: 5px 0;
-}
+} */
 
-.alert-item em {
+/* .alert-item em {
   font-style: italic;
   color: #999;
-}
+} */
 
-.map-container {
-  max-width: 1200px; /* Controls the width of the map container */
-  margin: 0 auto; /* Centers the container horizontally */
-  padding: 0 20px; /* Adds padding on the left and right sides */
+
+/* .map-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px; 
 }
 
 #map {
@@ -167,8 +169,10 @@ nav a:hover {
   height: 600px;
   border: 1px solid #ddd;
   border-radius: 5px;
-}
+} */
 
+
+/* Alert creation form */
 #alert-form {
   display: none;
   position: absolute;
@@ -192,13 +196,17 @@ nav a:hover {
   margin-top: 10px;
 }
 
+/* 
 .section-title {
   font-size: 24px;
   font-weight: bold;
   margin: 20px 0 10px 0;
-  text-align: center; /* Centers the titles */
+  text-align: center;
   color: #333;
-}
+} */
+
+
+
 
 /* Alert creation form css draggable header*/
 #alert-form {
@@ -212,6 +220,10 @@ nav a:hover {
   background-color: #d1e7dd;
   border-color: #badbcc;
 }
+
+
+
+
 
 /* Button styling */
 button {

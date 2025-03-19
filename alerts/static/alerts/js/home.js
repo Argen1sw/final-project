@@ -32,12 +32,18 @@ const hazardIcons = {
 };
 
 
-// Initialize the map
+// // Initialize the map
 var map = L.map("map").setView([51.505, -0.09], 6);
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {}
-).addTo(map);
+// L.tileLayer(
+//   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+//   {}
+// ).addTo(map);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  maxZoom: 19
+}).addTo(map);
+
 
 // layer group for markers types of alerts -- Adjust this whenever a new hazard type is added
 // create an dict of layer groups for each hazard type
@@ -270,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // Add a click event listener to each alert item to center the map at the alert's location
 document.addEventListener("DOMContentLoaded", function() {
   // Select all alert items
-  const alertElements = document.querySelectorAll('.alert-item');
+  const alertElements = document.querySelectorAll('.show-map-btn');
 
   // Loop through each element and attach a click event listener
   alertElements.forEach(el => {
