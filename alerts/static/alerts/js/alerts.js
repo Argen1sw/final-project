@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // Add a click event listener to each alert item to center the map at the alert's location
 document.addEventListener("DOMContentLoaded", function() {
   // Select all alert items
-  const alertElements = document.querySelectorAll('.alert-item');
+  const alertElements = document.querySelectorAll('.show-map-btn');
 
   // Loop through each element and attach a click event listener
   alertElements.forEach(el => {
@@ -622,7 +622,7 @@ function getCSRFToken() {
 $(function() {
   // Make the alert form draggable.
   $( "#alert-form" ).draggable({
-    // Optional: prevent dragging when interacting with form elements
+    
     cancel: "textarea, input, button, select, option"
   });
 });
