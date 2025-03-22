@@ -193,6 +193,14 @@
               </a>
             </p>
             <p class="mt-1 text-xs text-gray-400"><em>Created on: {{ alert.created_at }}</em></p>
+            <!-- button to show the alert on the map -->
+            <button
+              class="show-map-btn mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 focus:outline-none"
+              data-lat="{{ alert.location.y }}"
+              data-lng="{{ alert.location.x }}"
+            >
+              Show in Map
+            </button>
           </div>
         </details>
         {% endfor %}
