@@ -3,102 +3,117 @@
 {% block title %}EnviroAlerts | Device Manager {% endblock %}
 
 {% block map_features %}
-<link rel="stylesheet" href="{% static 'api_tokens/css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'api_tokens/css/style.css' %}" />
 {% endblock %} 
 
 {% block content %}
-
-  {% comment %} Make this message feature better later on with CSS to allow users to hide the message {% endcomment %}
+<div class="max-w-7xl mx-auto px-4 py-4">
+  {% comment %} Messages section styled with Tailwind classes {% endcomment %}
   {% if messages %}
-    <ul class="messages">
+    <ul class="mb-4 space-y-2">
       {% for message in messages %}
-        <li
-        {% if "token" in message.tags %} 
-          class="{{ message.tags }}"
-        {% endif %}>
+        <li class="px-4 py-2 rounded bg-gray-800 text-gray-100 {{ message.tags }}">
           {{ message }}
         </li>
       {% endfor %}
     </ul>
   {% endif %}
 
-  <h2>Device Manager</h2>
-  <p>
-    Your Bearer Token is used to authenticate your device with the EnviroAlerts API. 
+  <h2 class="text-2xl font-bold text-gray-100 mb-2">Device Manager</h2>
+  <p class="mb-4 text-gray-300">
+    Your Bearer Token is used to authenticate your device with the EnviroAlerts API.
     You can generate a new token for a new device or revoke/delete existing tokens.
     This token must be kept secret and must be treated with the same level of security as your password.
   </p>
-  <h3>Generate New Device "Bearer" Token</h3>
-  <form method="post">
+
+  <h3 class="text-xl font-semibold text-gray-100 mb-2">Generate New Device "Bearer" Token</h3>
+  <form method="post" class="mb-6">
     {% csrf_token %}
-    <div>
-      <label for="device_name">Device Name:</label>
-      <input type="text" id="device_name" name="device_name" required>
-      <label for="expires_at">Expires At (up to 2 years):</label>
-      <input type="datetime-local" id="expires_at" name="expires_at">
+    <div class="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
+      <div class="mb-2 md:mb-0">
+        <label for="device_name" class="block text-gray-100 mb-1">Device Name:</label>
+        <input type="text" id="device_name" name="device_name" required
+          class="w-full p-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+      </div>
+      <div>
+        <label for="expires_at" class="block text-gray-100 mb-1">Expires At (up to 2 years):</label>
+        <input type="datetime-local" id="expires_at" name="expires_at"
+          class="w-full p-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+      </div>
     </div>
-    <button type="submit">Generate Token</button>
+    <button type="submit"
+      class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+      Generate Token
+    </button>
   </form>
 
   {% if user.is_admin or user.is_ambassador %}
-    <h3>All Devices</h3>
+    <h3 class="text-xl font-semibold text-gray-100 mb-2">All Devices</h3>
   {% else %}
-    <h3>Your Devices</h3>
+    <h3 class="text-xl font-semibold text-gray-100 mb-2">Your Devices</h3>
   {% endif %}
 
-  <table>
-    <thead>
-      <tr>
-        {% if user.is_admin or user.is_ambassador %}
-          <th>User</th>
-        {% endif %}
-        <th>Device Name</th>
-        <th>Token</th>
-        <th>Created At</th>
-        <th>Expires At</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for token in access_tokens %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-gray-800 text-gray-100 border border-gray-700">
+      <thead>
         <tr>
           {% if user.is_admin or user.is_ambassador %}
-            <td>{{ token.user }}</td>
+            <th class="px-4 py-2 border-b border-gray-700 text-left">User</th>
           {% endif %}
-          <td>{{ token.device_name }}</td>
-          <td>{{ token.token }}</td>
-          <td>{{ token.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
-          <td>{{ token.expires_at|date:"SHORT_DATETIME_FORMAT" }}</td>
-          
-          <td>
-            <form method="post" action="{% url 'token_revoke' token.id %}">
-              {% csrf_token %}
-              {% if token.is_revoked %}
-                {% if user.is_admin or user.is_ambassador %}
-                  <button type="submit" >Unrevoke</button>
-                {% else %}
-                  Revoked
-                {% endif %}
-              {% else %}
-                <button type="submit">Revoke</button>
-              {% endif %}
-            </form>
-            
-            <form method="post" action="{% url 'token_delete' token.id %}">
-              {% csrf_token %}
-              <button type="submit">Delete</button>
-            </form>
-
-          </td>
-
+          <th class="px-4 py-2 border-b border-gray-700 text-left">Device Name</th>
+          <th class="px-4 py-2 border-b border-gray-700 text-left">Token</th>
+          <th class="px-4 py-2 border-b border-gray-700 text-left">Created At</th>
+          <th class="px-4 py-2 border-b border-gray-700 text-left">Expires At</th>
+          <th class="px-4 py-2 border-b border-gray-700 text-left">Actions</th>
         </tr>
-      {% empty %}
-        <tr>
-          <td colspan="5">No devices found.</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-
+      </thead>
+      <tbody>
+        {% for token in access_tokens %}
+          <tr class="border-b border-gray-700">
+            {% if user.is_admin or user.is_ambassador %}
+              <td class="px-4 py-2">{{ token.user }}</td>
+            {% endif %}
+            <td class="px-4 py-2">{{ token.device_name }}</td>
+            <td class="px-4 py-2 break-all">{{ token.token }}</td>
+            <td class="px-4 py-2">{{ token.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td class="px-4 py-2">{{ token.expires_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td class="px-4 py-2">
+              <div class="flex space-x-2">
+                <form method="post" action="{% url 'token_revoke' token.id %}">
+                  {% csrf_token %}
+                  {% if token.is_revoked %}
+                    {% if user.is_admin or user.is_ambassador %}
+                      <button type="submit"
+                        class="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                        Unrevoke
+                      </button>
+                    {% else %}
+                      <span class="px-2 py-1 bg-gray-600 text-white rounded">Revoked</span>
+                    {% endif %}
+                  {% else %}
+                    <button type="submit"
+                      class="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                      Revoke
+                    </button>
+                  {% endif %}
+                </form>
+                <form method="post" action="{% url 'token_delete' token.id %}">
+                  {% csrf_token %}
+                  <button type="submit"
+                    class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-2 text-center">No devices found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
