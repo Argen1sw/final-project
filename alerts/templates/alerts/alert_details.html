@@ -2,11 +2,10 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}EnviroAlerts | Alert info {% endblock %}
+{% block title %}EnviroAlerts | Alert info{% endblock %}
 
-{% block map_features %} 
-  
-  {% comment %} Using downloaded version of leaflet -- https://leafletjs.com/download.html {% endcomment %}
+{% block map_features %}
+  {# Using downloaded version of leaflet -- https://leafletjs.com/download.html #}
   <link rel="stylesheet" href="{% static 'alerts/js/leaflet/leaflet.css' %}" />
   <script src="{% static 'alerts/js/leaflet/leaflet.js' %}"></script>
 
@@ -28,100 +27,132 @@
 {% endblock %}
 
 {% block content %}
-
-  <div class="container">
-    {% if alert.is_active %}
-    <h2>Alert Details</h2>
-    {% else %}
-    <h2>Alert Details (INACTIVE)</h2>
-    {% endif %}
-    <div class="alert-details">
-      <h3>Hazard: {{ alert.hazard_type }}</h3>
-      <p><strong>hazard Details:</strong></p>
-      {% if alert.hazard_details %}
-        <ul>
-          {% for key, value in alert.hazard_details_dict.items %}
-          <p>{{ key|remove_underscores }}: {{ value }}</p>
-          {% endfor %}
-        </ul>
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    
+    <!-- Header -->
+    <div class="mb-6">
+      {% if alert.is_active %}
+        <h2 class="text-2xl font-bold text-gray-100">Alert Details</h2>
+      {% else %}
+        <h2 class="text-2xl font-bold text-red-500">Alert Details (INACTIVE)</h2>
       {% endif %}
-      <p><strong>Radius of effect:</strong> {{ alert.effect_radius }} m</p>
-      <p><strong>Alert Description:</strong> {{ alert.description }}</p>
-      <p><strong>Country:</strong> {{ alert.country }}</p>
-      <p><strong>City:</strong> {{ alert.city }}</p>
-      <p><strong>County:</strong> {{ alert.county }}</p>
-      <p><strong>Reported by:</strong> {{ alert.reported_by }}</p>
-      <p><strong>Source URL:</strong> <a href="{{ alert.source_url }}">{{ alert.source_url }}</a></p>
-      <p><strong>Created On:</strong> {{ alert.created_at }}</p>
-      <p><strong>Updated On:</strong> {{ alert.updated_at }}</p>
-      <p><strong>Expires On:</strong> {{ alert.soft_deletion_time }}</p>
-      <p><strong>Location:</strong>
-        <div id="map" style="height: 250px"></div>
-        
-      </p>
-      {% if can_vote %}
-        <p><strong>Positive Votes:</strong> {{ alert.positive_votes }}</p>
-        <p><strong>Negative Votes:</strong> {{ alert.negative_votes }}</p>
-        
-        <form action="{% url 'vote_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="vote" value="1">
-          <button type="submit" 
-                  class="{% if user_vote and user_vote == True %}selected{% endif %}">
-            {% if user_vote and user_vote == True  %}Upvoted{% else %}Upvote{% endif %}
-          </button>
-        </form>
-        
-        <form action="{% url 'vote_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="vote" value="-1">
-          <button type="submit" 
-                  class="{% if not user_vote and user_vote != None %}selected{% endif %}">
-            {% if not user_vote and user_vote != None %}Downvoted{% else %}Downvote{% endif %}
-          </button>
-        </form>
-      {% endif %}
-
-      {%  if can_edit %}
-        <form action="{% url 'delete_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <button type="submit" name="delete_alert" 
-            onclick="return confirm('Are you sure you want to delete this alert?');">
-            Delete Alert
-          </button>
-        </form>
+    </div>
+    
+    <!-- Alert Details Card -->
+    <div class="bg-gray-800 rounded p-6 text-gray-100 space-y-4">
+      <h3 class="text-xl font-semibold">Hazard: {{ alert.hazard_type }}</h3>
       
-        <!-- Edit Button -->
-        <button type="button" onclick="showEditForm()" id="edit-button">
-          Edit Alert
-        </button>
+      <div>
+        <p class="font-semibold">Hazard Details:</p>
+        {% if alert.hazard_details %}
+          <ul class="list-disc list-inside">
+            {% for key, value in alert.hazard_details_dict.items %}
+              <li>{{ key|remove_underscores }}: {{ value }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No additional details provided.</p>
+        {% endif %}
+      </div>
+      
+      <p><span class="font-semibold">Radius of effect:</span> {{ alert.effect_radius }} m</p>
+      <p><span class="font-semibold">Alert Description:</span> {{ alert.description }}</p>
+      <p><span class="font-semibold">Country:</span> {{ alert.country }}</p>
+      <p><span class="font-semibold">City:</span> {{ alert.city }}</p>
+      <p><span class="font-semibold">County:</span> {{ alert.county }}</p>
+      <p><span class="font-semibold">Reported by:</span> {{ alert.reported_by }}</p>
+      <p>
+        <span class="font-semibold">Source URL:</span>
+        <a href="{{ alert.source_url }}" class="text-indigo-400 hover:underline">{{ alert.source_url }}</a>
+      </p>
+      <p><span class="font-semibold">Created On:</span> {{ alert.created_at }}</p>
+      <p><span class="font-semibold">Updated On:</span> {{ alert.updated_at }}</p>
+      <p><span class="font-semibold">Expires On:</span> {{ alert.soft_deletion_time }}</p>
+      
+      <div>
+        <span class="font-semibold">Location:</span>
+        <div id="map" class="mt-2 h-64 rounded"></div>
+      </div>
+      
+      {% if can_vote %}
+        <div class="mt-4 space-y-2">
+          <p><span class="font-semibold">Positive Votes:</span> {{ alert.positive_votes }}</p>
+          <p><span class="font-semibold">Negative Votes:</span> {{ alert.negative_votes }}</p>
+          
+          <div class="flex space-x-4">
+            <form action="{% url 'vote_alert' alert.id %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="vote" value="1">
+              <button type="submit"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none {% if user_vote and user_vote == True %}ring-2 ring-indigo-400{% endif %}">
+                {% if user_vote and user_vote == True  %}Upvoted{% else %}Upvote{% endif %}
+              </button>
+            </form>
+            
+            <form action="{% url 'vote_alert' alert.id %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="vote" value="-1">
+              <button type="submit"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none {% if not user_vote and user_vote != None %}ring-2 ring-indigo-400{% endif %}">
+                {% if not user_vote and user_vote != None %}Downvoted{% else %}Downvote{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+      
+      {% if can_edit %}
+        <div class="mt-6 space-y-4">
 
-        <div id="edit-form">
-          <h2>Edit Alert</h2>
-          <form method="post">
+          <!-- Edit Button -->
+          <button type="button" onclick="showEditForm()"
+                  class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none"
+                  id="edit-button">
+            Edit Alert
+          </button>
+
+          <!-- Delete Button -->
+          <form action="{% url 'delete_alert' alert.id %}" method="post">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" name="edit_alert">Update Alert</button><br/><br/>
+            <button type="submit" name="delete_alert"
+                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none"
+                    onclick="return confirm('Are you sure you want to delete this alert?');">
+              Delete Alert
+            </button>
           </form>
-          <button type="button" onclick="hideEditForm()">Cancel</button>
+
+          <div id="edit-form" class="mb-8 bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <h2 class="text-xl font-semibold mb-2">Edit Alert</h2>
+            <form method="post">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit" name="edit_alert"
+                      class="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none">
+                Update Alert
+              </button>
+            </form>
+            <button type="button" onclick="hideEditForm()"
+                    class="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none">
+              Cancel
+            </button>
+          </div>
         </div>
       {% endif %}
       
       {% if can_archive %}
-        <form action="{% url 'archive_alert' alert.id %}" method="post">
-          {% csrf_token %}
-          <button type="submit" name="archive_alert"
-            onclick="return confirm('Are you sure you want to archive this alert?');">
-            Archive Alert
-          </button>
-        </form>
+        <div class="mt-6">
+          <form action="{% url 'archive_alert' alert.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" name="archive_alert"
+                    class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 focus:outline-none"
+                    onclick="return confirm('Are you sure you want to archive this alert?');">
+              Archive Alert
+            </button>
+          </form>
+        </div>
       {% endif %}
-
-
-
     </div>
   </div>
-
 
   <script src="{% static 'alerts/js/alert_details.js' %}"></script>
 {% endblock %}
