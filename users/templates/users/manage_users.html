@@ -3,22 +3,18 @@
 
 {% block title %}EnviroAlerts | User Manager{% endblock %}
 
-{% block map_features %} 
+{% block map_features %}
   <link rel="stylesheet" href="{% static 'users/css/style.css' %}" />
 {% endblock %}
 
 {% block content %}
-
-  <div class="container">
-
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    
     <!-- Messages -->
     {% if messages %}
-      <ul class="messages">
+      <ul class="mb-4 space-y-2">
         {% for message in messages %}
-          <li
-          {% if "user-manager" in message.tags %} 
-            class="{{ message.tags }}"
-          {% endif %}>
+          <li class="px-4 py-2 rounded bg-gray-800 text-gray-100 {{ message.tags }}">
             {{ message }}
           </li>
         {% endfor %}
@@ -26,81 +22,82 @@
     {% endif %}
     
     <!-- Header -->
-    <div class="header-title">Manage Users</div>
-
-    <!-- Search Bar -->
-    <div class="search-container">
-      <h2 class="section-title">Search Users</h2>
-      <input
-        type="text"
-        id="search-input"
-        placeholder="Search by username, email, etc."
-      />
+    <div class="mb-4">
+      <h1 class="text-3xl font-bold text-gray-100">Manage Users</h1>
     </div>
-          
+    
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Search Users</h2>
+      <input type="text" id="search-input" placeholder="Search by username, email, etc."
+        class="w-full p-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+    </div>
+    
     <!-- Users List -->
-    <div class="users-container">
-      <h2 class="section-title">Users List</h2>
+    <div class="bg-gray-800 rounded p-4">
+      <h2 class="text-xl font-semibold text-gray-100 mb-4">Users List</h2>
       
-      <!-- Users List -->
-      <div id="usersList">
+      <div id="usersList" class="space-y-4">
         {% for user in page_obj %}
-          <div class="user-item">
-            <div class="user-details">
-              <strong>Username:</strong> {{ user.username }}<br>
-              <strong>Email:</strong> {{ user.email }}<br>
-              <strong>Date Joined:</strong> {{ user.date_joined|date:"Y-m-d" }}<br>
-              <strong>User Type:</strong> {{ user.get_user_type_display }}<br>
-              <strong>Bio:</strong> {{ user.bio|default:"No bio" }}<br>
-              <strong>Alerts Created:</strong> {{ user.alerts_created }}<br>
-              <strong>Alerts Verified:</strong> {{ user.alerts_verified }}<br>
-              <strong>Email Verified:</strong> {{ user.is_verified|yesno:"Yes,No" }}<br>
-              <strong>Account Suspended:</strong> {{ user.is_suspended|yesno:"Yes,No" }}<br>
+          <div class="p-4 bg-gray-700 rounded flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="mb-2 md:mb-0">
+              <p class="text-gray-100"><strong>Username:</strong> {{ user.username }}</p>
+              <p class="text-gray-100"><strong>Email:</strong> {{ user.email }}</p>
+              <p class="text-gray-100"><strong>Date Joined:</strong> {{ user.date_joined|date:"Y-m-d" }}</p>
+              <p class="text-gray-100"><strong>User Type:</strong> {{ user.get_user_type_display }}</p>
+              <p class="text-gray-100"><strong>Bio:</strong> {{ user.bio|default:"No bio" }}</p>
+              <p class="text-gray-100"><strong>Alerts Created:</strong> {{ user.alerts_created }}</p>
+              <p class="text-gray-100"><strong>Alerts Verified:</strong> {{ user.alerts_verified }}</p>
+              <p class="text-gray-100"><strong>Email Verified:</strong> {{ user.is_verified|yesno:"Yes,No" }}</p>
+              <p class="text-gray-100"><strong>Account Suspended:</strong> {{ user.is_suspended|yesno:"Yes,No" }}</p>
             </div>
-            <div class="user-actions">
-
+            <div class="flex space-x-2">
               {% if request.user.is_admin %}
-                <!-- Admin can manage all users -->
                 {% if user.is_suspended %}
-                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                    Unsuspend
+                  </a>
                 {% else %}
-                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                  <a href="{% url 'suspend_unsuspend_user' user.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                    Suspend
+                  </a>
                 {% endif %}
-
               {% elif request.user.is_ambassador %}
-                <!-- Ambassadors can only manage normal users -->
                 {% if user.is_normal_user %}
                   {% if user.is_suspended %}
-                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-unsuspend">Unsuspend</a>
+                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                      Unsuspend
+                    </a>
                   {% else %}
-                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="btn btn-suspend">Suspend</a>
+                    <a href="{% url 'suspend_unsuspend_user' user.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">
+                      Suspend
+                    </a>
                   {% endif %}
                 {% else %}
-                  <span class="btn btn-disabled">Not Allowed</span>
+                  <span class="px-4 py-2 bg-gray-600 text-white rounded">Not Allowed</span>
                 {% endif %}
               {% endif %}
-
             </div>
           </div>
         {% empty %}
-          <p>No users found.</p>
+          <p class="text-gray-100">No users found.</p>
         {% endfor %}
       </div>
       
       <!-- Pagination Controls -->
-      <div class="pagination">
-        <button id="first-page">First</button>
-        <button id="prev-page">Previous</button>
-        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}">
+      <div class="flex justify-center items-center space-x-2 mt-4">
+        <button id="first-page" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">First</button>
+        <button id="prev-page" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Previous</button>
+        <span id="current-page" data-total-pages="{{ page_obj.paginator.num_pages }}" class="text-gray-100">
           Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         </span>
-        <button id="next-page">Next</button>
-        <button id="last-page">Last</button>
+        <button id="next-page" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Next</button>
+        <button id="last-page" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Last</button>
       </div>
-
+      
     </div>
   </div>
 
-  {% comment %} AJAX {% endcomment %}
+  <!-- AJAX -->
   <script src="{% static 'users/js/manage_users.js' %}"></script>
 {% endblock %}
