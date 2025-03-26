@@ -25,6 +25,24 @@ class EarthquakeForm(forms.ModelForm):
     class Meta:
         model = Earthquake
         fields = ['magnitude', 'depth', 'epicenter_description']
+        widgets = {
+            'magnitude': forms.NumberInput(attrs={
+                'min': 0,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'Magnitude of the earthquake',
+            }),
+            'depth': forms.NumberInput(attrs={
+                'min': 0,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'Depth of the earthquake in meters',
+            }),
+            'epicenter_description': forms.Textarea(attrs={
+                'type': 'text',
+                'rows': 3,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+        }
 
 
 @register_hazard_form(Flood)
@@ -32,6 +50,22 @@ class FloodForm(forms.ModelForm):
     class Meta:
         model = Flood
         fields = ['severity', 'water_level', 'is_flash_flood']
+        widgets = {
+            'severity': forms.Select(attrs={
+                'type': 'text',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+            'water_level': forms.NumberInput(attrs={
+                'min': 0,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'Water level in meters',
+            }),
+            'is_flash_flood': forms.CheckboxInput(attrs={
+                'type': 'checkbox',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-32',
+            }),
+        }
 
 
 @register_hazard_form(Tornado)
@@ -39,6 +73,19 @@ class TornadoForm(forms.ModelForm):
     class Meta:
         model = Tornado
         fields = ['category', 'damage_description']
+        widgets = {
+            'category': forms.Select(attrs={
+                'type': 'text',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+            'damage_description': forms.Textarea(attrs={
+                'type': 'text',
+                'rows': 3,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+        }
 
 
 @register_hazard_form(Fire)
@@ -46,6 +93,23 @@ class FireForm(forms.ModelForm):
     class Meta:
         model = Fire
         fields = ['fire_intensity', 'is_contained', 'cause']
+        widgets = {
+            'fire_intensity': forms.Select(attrs={
+                'type': 'text',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+            'is_contained': forms.CheckboxInput(attrs={
+                'type': 'checkbox',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-32',
+            }),
+            'cause': forms.Textarea(attrs={
+                'type': 'text',
+                'rows': 3,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+        }
 
 
 class AlertForm(forms.ModelForm):
@@ -82,7 +146,7 @@ class AlertForm(forms.ModelForm):
             'effect_radius': 'Impact Radius (meters)',
             'soft_deletion_time': 'Expiration Time',
         }
-        
+
         help_texts = {
             'effect_radius': 'Enter the effect radius (in meters, max 100000)',
             'soft_deletion_time': 'Select a time no more than 10 days from now',
@@ -91,21 +155,44 @@ class AlertForm(forms.ModelForm):
             'county': 'Enter the county',
             'source_url': 'Enter the source URL for the alert',
         }
-        
+
         error_messages = {
             'effect_radius': {
                 'max_value': "The effect radius must be less than or equal to 100000 meters.",
             },
         }
-        
+
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3, }),
-            'effect_radius': forms.NumberInput(attrs={'min': 0, 'max': 100000}),
-            'soft_deletion_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'country': forms.TextInput(attrs={'placeholder': 'Country'}),
-            'city': forms.TextInput(attrs={'placeholder': 'City'}),
-            'county': forms.TextInput(attrs={'placeholder': 'County'}),
-            'source_url': forms.URLInput(attrs={'placeholder': 'Source URL'}),
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'A brief description of the alert.',
+            }),
+            'effect_radius': forms.NumberInput(attrs={
+                'min': 0, 'max': 100000,
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+                'placeholder': 'Radius in meters (max 100000)',
+            }),
+            'soft_deletion_time': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+            }),
+            'country': forms.TextInput(attrs={
+                'placeholder': 'Country',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+            }),
+            'city': forms.TextInput(attrs={
+                'placeholder': 'City',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+            }),
+            'county': forms.TextInput(attrs={
+                'placeholder': 'County',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+            }),
+            'source_url': forms.URLInput(attrs={
+                'placeholder': 'Source URL',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+            }),
         }
 
     def clean_soft_deletion_time(self):
@@ -119,7 +206,7 @@ class AlertForm(forms.ModelForm):
                     "The soft deletion time cannot be more than 10 days from now."
                 )
         return soft_deletion_time
-    
+
     def save(self, commit=True):
         alert = super().save(commit=False)
         hazard = alert.hazard_details
