@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.9",
-    "@tailwindcss/vite": "^4.0.14"
+    "@tailwindcss/vite": "^4.0.14",
+    "flowbite": "^3.1.2"
   }
 }

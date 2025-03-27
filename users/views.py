@@ -60,7 +60,7 @@ class CustomLoginView(LoginView):
     * If the user is already logged in, redirect to the home page.
     * If the user is not logged in, display the login form.
     """
-    # form_class = LoginForm
+    form_class = LoginForm
     template_name = "users/login.html"
 
     def form_valid(self, form):

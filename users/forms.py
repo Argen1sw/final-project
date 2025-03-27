@@ -5,19 +5,49 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 # Local Imports
 from .models import User
 
-# Register should include a mechanism that allows user to register
-# with their google account.
+
 class RegisterForm(UserCreationForm):
     """
     View class that handles user registration.
-    
+
     * UserCreationForm: A form that creates a user, with no privileges, 
         from the given username and password.
     * Fields: username, email, password1, password2
     """
+    password1 = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Password',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full'
+            }
+        ),
+    )
+    password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Confirm Password',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full'
+            }
+        ),
+    )
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'placeholder': 'Username',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full'
+            }),
+            'email': forms.EmailInput(attrs={
+                'placeholder': 'Email',
+                'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full'
+            }),
+        }
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -26,10 +56,26 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError("This email is already in use.")
         return email
 
-# This will need to be implemented in the future to be able to accept google login and
-# email as a form of validation too
+
 class LoginForm(AuthenticationForm):
-    pass
+    """
+    Form class that handles user login.
+
+    * AuthenticationForm: A form for logging a user in.
+    * Fields: username, password
+    """
+    username = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+        'placeholder': 'Username',
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'bg-gray-700 text-white border border-gray-600 p-2 rounded w-full',
+        'placeholder': 'Password',
+    }))
+
+    class Meta:
+        model = User
+        fields = ['username', 'password']
 
 
 class UserProfileForm(forms.ModelForm):
@@ -40,7 +86,16 @@ class UserProfileForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'bio']
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 3})
+            'first_name': forms.TextInput(attrs={
+                'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            }),
+            'bio': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            }),
         }
 
 
@@ -51,17 +106,23 @@ class PasswordUpdateForm(forms.Form):
     # Fields
     current_password = forms.CharField(
         label="Current Password",
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(attrs={
+            'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+        }),
         required=True
     )
     new_password = forms.CharField(
         label="New Password",
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(attrs={
+            'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+        }),
         required=True
     )
     repeat_new_password = forms.CharField(
         label="Repeat Password",
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(attrs={
+            'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+        }),
         required=True
     )
 
@@ -103,7 +164,7 @@ class PasswordUpdateForm(forms.Form):
         repeat_new_password = self.cleaned_data.get('repeat_new_password')
         new_password = self.cleaned_data.get('new_password')
         print(f" from repeat password {repeat_new_password}")
-        
+
         if repeat_new_password != new_password:
             raise forms.ValidationError(
                 "The new password and repeat password do not match.")
@@ -126,6 +187,12 @@ class EmailUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email']
+        widgets = {
+            'email': forms.EmailInput(attrs={
+                'class': 'bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500',
+                'style': 'width: 100%;',
+            }),
+        }
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

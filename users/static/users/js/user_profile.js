@@ -1,11 +1,15 @@
-// Function to show the profile form
-function showProfileForm(){
-  document.getElementById("profile-form").style.display = "block";
+// Function to show the modal by removing the opacity and pointer events restrictions
+function showProfileForm() {
+  const modal = document.getElementById("profile-modal");
+  modal.classList.remove("opacity-0", "pointer-events-none");
+  modal.classList.add("opacity-100", "pointer-events-auto");
 }
 
-// Function to hide the profile form
-function hideProfileForm(){
-  document.getElementById("profile-form").style.display = "none";
+// Function to hide the modal by reversing the classes
+function hideProfileForm() {
+  const modal = document.getElementById("profile-modal");
+  modal.classList.remove("opacity-100", "pointer-events-auto");
+  modal.classList.add("opacity-0", "pointer-events-none");
 }
 
 // Function to compare the new password and repeat password fields
