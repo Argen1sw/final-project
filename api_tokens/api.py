@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import generics, mixins
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.throttling import UserRateThrottle
+from rest_framework.throttling import ScopedRateThrottle
 
 # Local Imports
 from alerts.models import Alert
@@ -41,7 +41,8 @@ class CreateAlertAPIView(generics.GenericAPIView,
     """
     permission_classes = [IsAuthenticated]
     serializer_class = CreateAlertSerializer
-    throttle_classes = [UserRateThrottle] # Throttle to limit the number of requests per token in this case
+    throttle_classes = [ScopedRateThrottle] # Throttle to limit the number of requests for this endpoint
+    throttle_scope = 'create_alert' # Scope for the throttle class
     
     @swagger_auto_schema(
         responses={201: openapi.Response("Alert created successfully"), 400: "Bad Request"}

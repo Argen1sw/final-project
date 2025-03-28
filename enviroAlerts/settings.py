@@ -95,10 +95,10 @@ REST_FRAMEWORK = {
         'api_tokens.authentication.CustomTokenAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'user': '10/day',  # Limit each user to 10 requests per day
+        'create_alert': '10/day',  # Limit for this api endpoint to 10 requests per day
     }
 }
 
