@@ -324,7 +324,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
 
 // Pagination and Search functionality for alerts list
 document.addEventListener("DOMContentLoaded", function() {
-  // Initialize currentPage and totalPages based on rendered data (DOMcontentLoaded)
+  // Initialize currentPage and totalPages based on rendered data
   let currentPage = parseInt(document.querySelector('#current-page').innerText.match(/\d+/)[0]);
   let totalPages = parseInt(document.getElementById('current-page').getAttribute('data-total-pages'));
 
@@ -345,37 +345,67 @@ document.addEventListener("DOMContentLoaded", function() {
         const alertsList = document.getElementById("alertsList");
         alertsList.innerHTML = "";
 
-        // Append new alerts received from the server / API
         data.alerts.forEach(alert => {
-          const alertDiv = document.createElement("div");
-          alertDiv.classList.add("alert-item");
-          alertDiv.innerHTML = `
-            <strong>${alert.hazard_type}</strong>
-            <p>${alert.description}</p>
-            <p>Location: ${alert.city || alert.county || alert.country || "Unknown"}</p>
-            <p>Reported by: ${alert.reported_by || "Unknown"}</p>
-            <p>${formatHazardDetails(alert.hazard_details)}</p>
-            <p><a href="/alert/${alert.id}" target="_blank">More Details / Edit Alert</a></p>
-            <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
+          // Create the <details> container and add Tailwind classes
+          const details = document.createElement("details");
+          details.classList.add("alert-item", "border", "border-gray-700", "rounded-lg");
+          details.setAttribute("data-lat", alert.location.coordinates[1]);
+          details.setAttribute("data-lng", alert.location.coordinates[0]);
+        
+          // Create the <summary> element with Tailwind classes
+          const summary = document.createElement("summary");
+          summary.classList.add("p-2", "cursor-pointer", "bg-gray-800", "hover:bg-gray-700", "flex", "justify-between", "items-center", "text-gray-100");
+          summary.innerHTML = `
+            <span class="font-bold">${alert.hazard_type}</span>
+            <span class="text-sm text-gray-300">
+              Location: ${alert.city || alert.county || alert.country || "Unknown"}
+            </span>
           `;
-          alertDiv.addEventListener("click", function() {
-            // Retrieve the latitude and longitude from the data attributes
-            const lng = parseFloat(alert.location.coordinates[0]);
+        
+          // Create the content div that holds the alert details
+          const contentDiv = document.createElement("div");
+          contentDiv.classList.add("p-2", "bg-gray-800");
+          contentDiv.innerHTML = `
+            <p class="text-gray-300">${alert.description}</p>
+            <p class="mt-1 text-gray-400">Reported by: ${alert.reported_by || "Unknown"}</p>
+            <p class="mt-1">${formatHazardDetails(alert.hazard_details)}</p>
+            <p class="mt-1">
+              <a href="/alert/${alert.id}" target="_blank" class="text-indigo-400 hover:underline">
+                More Details / Edit Alert
+              </a>
+            </p>
+            <p class="mt-1 text-xs text-gray-400">
+              <em>Created on: ${new Date(alert.created_at).toLocaleString()}</em>
+            </p>
+            <button class="show-map-btn mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 focus:outline-none"
+              data-lat="${alert.location.coordinates[1]}"
+              data-lng="${alert.location.coordinates[0]}">
+              Show in Map
+            </button>
+          `;
+        
+          // Append the summary and content to the details element
+          details.appendChild(summary);
+          details.appendChild(contentDiv);
+        
+          // Attach event listener only to the "Show in Map" button
+          const mapButton = contentDiv.querySelector(".show-map-btn");
+          mapButton.addEventListener("click", function(event) {
+            // Prevent the event from bubbling up to the details element if needed
+            event.stopPropagation();
             const lat = parseFloat(alert.location.coordinates[1]);
-
-            // Center the Leaflet map at the alert's location
+            const lng = parseFloat(alert.location.coordinates[0]);
             if (typeof map !== 'undefined') {
               map.setView([lat, lng], 13);
             }
-
-            // Scroll the map element into view smoothly
             const mapElement = document.getElementById('map');
             if (mapElement) {
               mapElement.scrollIntoView({ behavior: 'smooth' });
             }
           });
-
-          alertsList.appendChild(alertDiv);
+        
+          // Append the details element to the alerts list container
+          alertsList.appendChild(details);
         });
 
         // Update current page and pagination display

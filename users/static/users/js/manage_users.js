@@ -13,94 +13,97 @@ document.addEventListener("DOMContentLoaded", function() {
       url += `&q=${encodeURIComponent(searchQuery)}`;
     }
     fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const usersList = document.getElementById('usersList');
-        usersList.innerHTML = "";
-
-        // Append new users to the list
-        data.users.forEach(user => {
-          // Create the user item div
-          const userListDiv = document.createElement('div');
-          userListDiv.classList.add('user-item');
-
-          // Create the user details div
-          const userDetailsDiv = document.createElement('div');
-          userDetailsDiv.classList.add('user-details');
-          userDetailsDiv.innerHTML = `
-            <strong>Username: ${user.username}</strong><br>
-            <strong>Email: ${user.email}</strong><br>
-            <strong>Date Joined: ${user.date_joined}</strong><br>
-            <strong>User Type: ${user.user_type}</strong><br>
-            <strong>Bio: ${user.bio}</strong><br>
-            <strong>Alerts Created: ${user.alerts_created}</strong><br>
-            <strong>Alerts Verified: ${user.alerts_verified}</strong><br>
-            <strong>Email Verified: ${user.is_verified}</strong><br>
-            <strong>Account Suspended: ${user.is_suspended}</strong><br>
-          `;
-
-          // Append the user details div to the user list div
-          userListDiv.appendChild(userDetailsDiv);
-
-          // Create the user actions div
-          const userActionsDiv = document.createElement('div');
-          userActionsDiv.classList.add('user-actions');
-          
-          const unsuspendButton = document.createElement('a');
-          const suspendButton = document.createElement('a');
-
-          // Check if the user is an admin or ambassador for the appropriate actions
-          if (data.user_type === 3){ // 3 === admin
+    .then(response => response.json())
+    .then(data => {
+      const usersList = document.getElementById('usersList');
+      usersList.innerHTML = "";
+  
+      // Append new users to the list
+      data.users.forEach(user => {
+        // Create the user item container
+        const userItem = document.createElement('div');
+        userItem.classList.add(
+          "p-4",
+          "bg-gray-700",
+          "rounded",
+          "flex",
+          "flex-col",
+          "md:flex-row",
+          "justify-between",
+          "items-start",
+          "md:items-center"
+        );
+  
+        // Create the user details div
+        const userDetailsDiv = document.createElement('div');
+        userDetailsDiv.classList.add("mb-2", "md:mb-0");
+        userDetailsDiv.innerHTML = `
+          <p class="text-gray-100"><strong>Username:</strong> ${user.username}</p>
+          <p class="text-gray-100"><strong>Email:</strong> ${user.email}</p>
+          <p class="text-gray-100"><strong>Date Joined:</strong> ${user.date_joined}</p>
+          <p class="text-gray-100"><strong>User Type:</strong> ${user.user_type_display || user.user_type}</p>
+          <p class="text-gray-100"><strong>Bio:</strong> ${user.bio || "No bio"}</p>
+          <p class="text-gray-100"><strong>Alerts Created:</strong> ${user.alerts_created}</p>
+          <p class="text-gray-100"><strong>Alerts Verified:</strong> ${user.alerts_verified}</p>
+          <p class="text-gray-100"><strong>Email Verified:</strong> ${user.is_verified ? "Yes" : "No"}</p>
+          <p class="text-gray-100"><strong>Account Suspended:</strong> ${user.is_suspended ? "Yes" : "No"}</p>
+        `;
+        userItem.appendChild(userDetailsDiv);
+  
+        // Create the user actions div
+        const userActionsDiv = document.createElement('div');
+        userActionsDiv.classList.add("flex", "space-x-2");
+  
+        // Check permissions based on the logged-in user type (data.user_type)
+        if (data.user_type === 3) { // 3 === admin
+          if (user.is_suspended) {
+            const unsuspendLink = document.createElement('a');
+            unsuspendLink.href = '/suspend_unsuspend_user/' + user.id + '/';
+            unsuspendLink.textContent = 'Unsuspend';
+            unsuspendLink.classList.add("px-4", "py-2", "bg-indigo-600", "text-white", "rounded", "hover:bg-indigo-700", "focus:outline-none");
+            userActionsDiv.appendChild(unsuspendLink);
+          } else {
+            const suspendLink = document.createElement('a');
+            suspendLink.href = '/suspend_unsuspend_user/' + user.id + '/';
+            suspendLink.textContent = 'Suspend';
+            suspendLink.classList.add("px-4", "py-2", "bg-indigo-600", "text-white", "rounded", "hover:bg-indigo-700", "focus:outline-none");
+            userActionsDiv.appendChild(suspendLink);
+          }
+        } else if (data.user_type === 2) { // 2 === ambassador
+          if (user.user_type === 1) { // 1 === normal user
             if (user.is_suspended) {
-              // const unsuspendButton = document.createElement('a');
-              unsuspendButton.textContent = 'Unsuspend'
-              unsuspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
-              unsuspendButton.classList.add('btn', 'btn-unsuspend');
-              userActionsDiv.appendChild(unsuspendButton);
+              const unsuspendLink = document.createElement('a');
+              unsuspendLink.href = '/suspend_unsuspend_user/' + user.id + '/';
+              unsuspendLink.textContent = 'Unsuspend';
+              unsuspendLink.classList.add("px-4", "py-2", "bg-indigo-600", "text-white", "rounded", "hover:bg-indigo-700", "focus:outline-none");
+              userActionsDiv.appendChild(unsuspendLink);
+            } else {
+              const suspendLink = document.createElement('a');
+              suspendLink.href = '/suspend_unsuspend_user/' + user.id + '/';
+              suspendLink.textContent = 'Suspend';
+              suspendLink.classList.add("px-4", "py-2", "bg-indigo-600", "text-white", "rounded", "hover:bg-indigo-700", "focus:outline-none");
+              userActionsDiv.appendChild(suspendLink);
             }
-            else{
-              // const suspendButton = document.createElement('a');
-              suspendButton.textContent = 'Suspend'
-              suspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
-              suspendButton.classList.add('btn', 'btn-suspend');
-              userActionsDiv.appendChild(suspendButton);
-            }
+          } else {
+            const notAllowedSpan = document.createElement('span');
+            notAllowedSpan.textContent = 'Not Allowed';
+            notAllowedSpan.classList.add("px-4", "py-2", "bg-gray-600", "text-white", "rounded");
+            userActionsDiv.appendChild(notAllowedSpan);
           }
-          if (data.user_type === 2){ // 2 === ambassador
-            if (user.user_type === 1){ // 1 === normal user
-              if (user.is_suspended) {
-                // const unsuspendButton = document.createElement('a');
-                unsuspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
-                unsuspendButton.classList.add('btn btn-unsuspend');
-                userActionsDiv.appendChild(unsuspendButton);
-              }
-              else{
-                // const suspendButton = document.createElement('a');
-                suspendButton.href = '/suspend_unsuspend_user/' + user.id + '/';
-                suspendButton.classList.add('btn btn-suspend');
-                userActionsDiv.appendChild(suspendButton);
-              }
-            }
-            else {
-              const notAllowd = document.createElement('span');
-              notAllowd.classList.add('btn btn-disabled');
-              notAllowd.textContent = 'Not Allowed';
-              userActionsDiv.appendChild(notAllowd);
-            }
-          }
-
-          // Append the user actions div to the user list div
-          userListDiv.appendChild(userActionsDiv);
-          // Append the user list div to the users list
-          usersList.appendChild(userListDiv);
-        });
-
-        // Update the current page number
-        currentPage = data.page;
-        totalPages = data.num_pages;
-        updatePaginationControls(data.page, data.num_pages);
-
-      })
+        }
+  
+        // Append the actions div to the user item container
+        userItem.appendChild(userActionsDiv);
+  
+        // Append the user item to the users list container
+        usersList.appendChild(userItem);
+      });
+  
+      // Update the current page number and total pages, then update pagination controls accordingly.
+      currentPage = data.page;
+      totalPages = data.num_pages;
+      updatePaginationControls(data.page, data.num_pages);
+    })
     .catch(error => console.error("Error fetching users", error));
   }
 
