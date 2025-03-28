@@ -28,6 +28,7 @@ from django.urls import reverse
 from .serializers import AlertGeoSerializer
 from .models import (Alert, Earthquake, Flood, Tornado, Fire, AlertUserVote)
 from .forms import AlertForm
+from users.models import User
 
 # Simple mapping of hazard types to model names
 # This is a temporary solution and should be replaced with a more robust solution
@@ -67,6 +68,23 @@ class HomeView(TemplateView):
                 if alert.hazard_details_dict[key] is None:
                     alert.hazard_details_dict[key] = "Not provided"
         context['page_obj'] = page_obj
+        
+        # Add User's vote status
+        users = User.objects.filter(is_suspended=False).order_by('-alerts_upvoted')[:5]
+        context['users'] = users
+        return context
+
+
+class AboutView(TemplateView):
+    """
+    View class for the about page.
+
+    * Displays the about page with information about the application.
+    """
+    template_name = "alerts/about.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         return context
 
 

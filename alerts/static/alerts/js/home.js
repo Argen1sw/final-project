@@ -85,8 +85,7 @@ fetch("/geojson/")
         <b>${hazard_type}</b><br>
         ${description}<br>
         Reported by: ${reported_by || "Unknown"}<br>
-        <a href="${source_url}" target="_blank">More Info</a>
-        <a href="/alert/${feature.id}" target="_blank">More Details / Edit Alert</a>
+        <a href="/alert/${feature.id}" target="_blank">More Details</a>
       `);
       
       // Add the marker to the appropriate layer group

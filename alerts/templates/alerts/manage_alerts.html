@@ -166,7 +166,8 @@
       <h2 class="text-xl font-semibold text-gray-100 mb-2">Alerts List</h2>
       <div id="alertsList" class="space-y-2">
         {% for alert in page_obj %}
-        <details class="alert-item border border-gray-700 rounded-lg" data-lat="{{ alert.location.y }}" data-lng="{{ alert.location.x }}">
+        <details class="alert-item border border-gray-700 rounded-lg" data-lat="{{ alert.location.y }}" data-lng="{{ alert.location.x }}"
+        {% if forloop.first %}open{% endif %}>
           <summary class="p-2 cursor-pointer bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-gray-100">
             <span class="font-bold">{{ alert.hazard_type }}</span>
             <span class="text-sm text-gray-300">

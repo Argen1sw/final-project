@@ -5,7 +5,7 @@ from django.urls import path
 from .views import (ManageAlertsView, CreateAlertView,
                     HomeView, AlertGeoJsonListView, AlertsPaginatedView,
                     AlertVoteView, AlertDetailsAndEditView, AlertDeleteView,
-                    ArchiveAlertView)
+                    ArchiveAlertView, AboutView)
 
 
 urlpatterns = [
@@ -18,6 +18,8 @@ urlpatterns = [
 
     # Path endpoint for creating alerts (Used for the form in the map)
     path('create_alerts/', CreateAlertView.as_view(), name='create_alert'),
+    
+    path('about/', AboutView.as_view(), name='about'),
 
     # Path endpoint for the  all Alerts in GeoJSON format (Used for the map)
     path('geojson/', AlertGeoJsonListView.as_view(), name='alerts-geojson'),
@@ -39,6 +41,6 @@ urlpatterns = [
     path('alert/<int:pk>/delete/', AlertDeleteView.as_view(), name='delete_alert'),
 
     # Path endpoint for archiving alerts
-    path('alert/<int:pk>/archive/',
-         ArchiveAlertView.as_view(), name='archive_alert'),
+    path('alert/<int:pk>/archive/', ArchiveAlertView.as_view(), name='archive_alert'),
+    
 ]

@@ -1,101 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About</title>
-    <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            line-height: 1.6;
-            color: #333;
-        }
+{% block title %}EnviroAlerts | About{% endblock %}
 
-        /* Navigation Bar */
-        nav {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background-color: #f4f4f4;
-          padding: 10px 20px;
-          border-bottom: 1px solid #ddd;
-        }
-  
-        nav a {
-          text-decoration: none;
-          color: #333;
-          font-weight: bold;
-          padding: 5px 10px;
-        }
-  
-        nav a:hover {
-          background-color: #ddd;
-          border-radius: 3px;
-        }
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-4 space-y-8">
 
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-        }
+  <!-- Our Concept -->
+  <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+    <h2 class="text-2xl font-bold text-indigo-300 mb-4">Our Concept</h2>
+    <p class="text-gray-300 mb-4">
+      Welcome to EnviroAlerts: a community-driven, open source platform dedicated to empowering 
+      underserved communities. We believe that everyone deserves access to real-time environmental 
+      insights without the burden of costly infrastructure.
+    </p>
+  </div>
 
-        /* Section Styling */
-        .section-title {
-            text-align: center;
-            font-size: 28px;
-            margin: 20px 0 10px 0;
-            font-weight: bold;
-            color: #444;
-        }
+  <!-- What is EnviroAlerts? -->
+  <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+    <h2 class="text-2xl font-bold text-indigo-300 mb-4">What is EnviroAlerts?</h2>
+    <p class="text-gray-300 mb-4">
+      Our platform allows you to visualize, publish, and manage a variety of environmental 
+      alerts through an intuitive web interface. Whether you are tracking local river water levels,
+       monitoring storm patterns, or alerting neighbors to wildfires, EnviroAlerts bridges the gap 
+       between cutting-edge IoT integration and grassroots knowledge.
+    </p>
+    <p class="text-gray-300">
+      Explore our <a href="{% url 'schema-redoc' %}" class="text-indigo-400 hover:underline">API documentation</a> 
+      to learn how to integrate low-cost IoT devices with our system.
+    </p>
+  </div>
 
-        .content-box {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 20px;
-            margin: 20px auto;
-            max-width: 800px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 18px;
-            color: #555;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav>
-        <a href="/alerts/home/">EnviroAlerts</a>
-        <a href="/alerts/map/">Alerts Map</a>
-        <a href="/alerts/resources/">IOT Resources</a>
-        <a href="/alerts/about/">About</a>
-        <a href="/alerts/login/">Login</a>
-      </nav>
+  <!-- Why EnviroAlerts? -->
+  <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+    <h2 class="text-2xl font-bold text-indigo-300 mb-4">Why EnviroAlerts?</h2>
+    <p class="text-gray-300 mb-4">
+      By leveraging affordable IoT solutions and crowdsourced data, EnviroAlerts transforms local observations into
+      a powerful, worldwide alert system. Our flexible design enables you to add new alert types, contribute your 
+      own insights, and collaborate with others.
+    </p>
+    <p class="text-gray-300">
+      Whether you are a concerned citizen, an environmental activist, or a local authority, our platform empowers you to take action.
+    </p>
+  </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Who Are We Section -->
-        <div class="section-title">Who are we?</div>
-        <div class="content-box">
-            <p>Description of who created the services</p>
-        </div>
+  <!-- Join Us -->
+  <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+    <h2 class="text-2xl font-bold text-indigo-300 mb-4">Join Us</h2>
+    <p class="text-gray-300 mb-4">
+      Our mission is simple: empower communities, promote accessibility, and foster a sustainable model of collective vigilance. 
+      We are building a resilient future where every voice counts and no community is left behind in the fight against environmental hazards.
+    </p>
+    <p class="text-gray-300">
+      Ready to get involved? <a href="{% url 'register' %}" class="text-indigo-400 hover:underline">Register now</a> and become part of 
+      our community. For more information about the technology behind our project and to view our open source code, visit our 
+      <a href="https://github.com/Argen1sw/final-project" target="_blank" class="text-indigo-400 hover:underline">GitHub repository</a>.
+    </p>
+  </div>
 
-        <!-- Why Section -->
-        <div class="section-title">Why?</div>
-        <div class="content-box">
-            <p>
-                The mission, goals, aims and the reason of existence of the web application
-            </p>
-        </div>
-    </div>
-</body>
-</html>
+</div>
+{% endblock %}

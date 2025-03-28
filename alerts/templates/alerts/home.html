@@ -31,8 +31,32 @@
 
 {% block content %}
   <div class="max-w-7xl mx-auto px-4 py-4">
+
+    <!-- EnviroAlert Summary (Only for non users)-->
+    {% if user.is_authenticated %}
+    {% else %}
+    <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+      <h2 class="text-2xl font-bold text-indigo-300 mb-4">What is EnviroAlert?</h2>
+      <p class="text-gray-300">
+        EnviroAlerts is a community-driven, open source platform dedicated to empowering underserved
+         communities. We provide real-time environmental insights without the burden of costly 
+         infrastructure.
+      </p>
+      <p class="text-gray-300 mb-4">
+        Visualize, publish, and manage environmental alerts with ease; Whether tracking local water 
+        levels or wildfires, our platform bridges IoT integration and grassroots knowledge...
+        <a href="/about" class="text-indigo-400 hover:underline">Learn More &rarr;</a>
+      </p>
+      <p class="text-gray-300">
+        Join us in building a resilient future where every voice counts. 
+        <a href="/register" class="text-indigo-400 hover:underline">Register &rarr;</a>
+      </p>
+    </div>
+    {% endif %}
+
     <!-- Map Section: -->
     <div class="mb-12">
+      <h2 class="text-2xl font-bold text-indigo-300 mb-4">EnviroAlert Map</h2>
       <div id="map" class="w-full h-[calc(100dvh-240px)] rounded-lg shadow-lg"></div>
     </div>
 
@@ -49,10 +73,11 @@
         
     <!-- Alerts List with Collapsible Items -->
     <div class="mb-8">
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">Alerts List</h2>
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">Most Recent Alerts</h2>
       <div id="alertsList" class="space-y-2">
         {% for alert in page_obj %}
-        <details class="alert-item border border-gray-700 rounded-lg" data-lat="{{ alert.location.y }}" data-lng="{{ alert.location.x }}">
+        <details class="alert-item border border-gray-700 rounded-lg" data-lat="{{ alert.location.y }}" data-lng="{{ alert.location.x }}" 
+        {% if forloop.first %}open{% endif %}>
           <summary class="p-2 cursor-pointer bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-gray-100">
             <span class="font-bold">{{ alert.hazard_type }}</span>
             <span class="text-sm text-gray-300">
@@ -104,22 +129,37 @@
       </div>
     </div>
 
-    <!-- Concept Description -->
-    <div class="mb-8">
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">Concept Description</h2>
-      <p class="text-gray-300">
-        Explanation of the services offered and the vision of EnviroAlerts.
+    <!-- Top 5 users with the most contributions-->
+    <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+      <h2 class="text-2xl font-bold text-indigo-300 mb-4">Top Contributors</h2>
+      <p class="text-gray-300 mb-4">
+        Meet our top contributors who are making a difference in their communities by reporting environmental hazards.
       </p>
+      <ul class="list-disc list-inside text-gray-300">
+        {% for user in users %}          
+          <li>{{ user.username }} - {{ user.alerts_upvoted }} alerts</li>
+        {% endfor %}
+      </ul>
     </div>
 
-    <!-- Most Popular IOT Resources -->
-    <div class="mb-8">
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">Most Popular IOT Resources</h2>
-      <p class="text-gray-300">Placeholder content for IOT resources section.</p>
+    <!-- IoT API Section -->
+    <div class="mb-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+      <h2 class="text-2xl font-bold text-indigo-300 mb-4">IoT API</h2>
+      <p class="text-gray-300 mb-4">
+        Our IoT API enables seamless integration with low-cost monitoring devices, allowing you to report real-time environmental data directly to EnviroAlerts. With token-based authentication and comprehensive documentation, getting started is simple.
+      </p>
+      <p class="text-gray-300">
+        Explore our API documentation to learn how you can build smarter, connected solutions that help keep communities safe and informed.
+      </p>
+      <a href="{% url 'schema-redoc' %}" class="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white font-medium rounded hover:bg-indigo-700 focus:outline-none">
+        Learn More &rarr;
+      </a>
     </div>
-  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="{% static 'alerts/js/home.js' %}"></script>
+
+{% include "./footer.html" %}
+
 {% endblock %}

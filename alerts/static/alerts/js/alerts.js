@@ -267,7 +267,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
         <b>${alert.hazard_type}</b><br>
         ${alert.description}<br>
         Reported by: ${alert.reported_by || "Unknown"}<br>
-        <a href="${alert.source_url || '#'}" target="_blank">More Info</a>
+        <a href="/alert/${alert.id}" target="_blank">More Details / Edit Alert</a>
       `);
       
       // Add the marker to the appropriate layer group
@@ -293,7 +293,7 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
         <b>${alert.hazard_type})</b><br>
         ${alert.description}<br>
         Reported by: ${alert.reported_by || "Unknown"}<br>
-        <a href="${alert.source_url || '#'}" target="_blank">More Info</a>
+        <a href="/alert/${alert.id}" target="_blank">More Details / Edit Alert</a>
       `);
 
       circleLayer.addLayer(permanentCircle);
@@ -304,17 +304,72 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
       
       // Dynamically add the alert to the list
       const alertsList = document.getElementById("alertsList");
-      const alertDiv = document.createElement("div");
-      alertDiv.classList.add("alert-item");
-      alertDiv.innerHTML = `
-        <strong>${alert.hazard_type})</strong>
-        <p>${alert.description}</p>
-        <p>Location: Unknown</p>
-        <p>Reported by: ${alert.reported_by || "Anonymous"}</p>
-        <p><a href="/alert/${alert.id} || '#'}" target="_blank">More Details/Edit Alert</a></p>
-        <p><em>Created on: ${new Date(alert.created_at).toLocaleString()}</em></p>
+
+      // Create the <details> container and add Tailwind classes
+      const details = document.createElement("details");
+      details.classList.add("alert-item", "border", "border-gray-700", "rounded-lg");
+
+      // Set data attributes for location if available (fall back if not)
+      if (alert.location && alert.location.coordinates) {
+        details.setAttribute("data-lat", alert.location.coordinates[1]);
+        details.setAttribute("data-lng", alert.location.coordinates[0]);
+      }
+
+      // Create the <summary> element with Tailwind classes
+      const summary = document.createElement("summary");
+      summary.classList.add("p-2", "cursor-pointer", "bg-gray-800", "hover:bg-gray-700", "flex", "justify-between", "items-center", "text-gray-100");
+      summary.innerHTML = `
+        <span class="font-bold">${alert.hazard_type}</span>
+        <span class="text-sm text-gray-300">
+          Location: ${alert.city || alert.county || alert.country || "Unknown"}
+        </span>
       `;
-      alertsList.appendChild(alertDiv);
+
+      // Create the content div that holds the alert details
+      const contentDiv = document.createElement("div");
+      contentDiv.classList.add("p-2", "bg-gray-800");
+      contentDiv.innerHTML = `
+        <p class="text-gray-300">${alert.description}</p>
+        <p class="mt-1 text-gray-400">Reported by: ${alert.reported_by || "Anonymous"}</p>
+        <p class="mt-1">${formatHazardDetails(alert.hazard_data)}</p> 
+        <p class="mt-1">
+          <a href="/alert/${alert.id}" target="_blank" class="text-indigo-400 hover:underline">
+            More Details / Edit Alert
+          </a>
+        </p>
+        <p class="mt-1 text-xs text-gray-400">
+          <em>Created on: ${new Date(alert.created_at).toLocaleString()}</em>
+        </p>
+        <button class="show-map-btn mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 focus:outline-none"
+          data-lat="${alert.location.coordinates[1]}"
+          data-lng="${alert.location.coordinates[0]}">
+          Show in Map
+        </button>
+      `;
+
+      // Append the summary and content to the details element
+      details.appendChild(summary);
+      details.appendChild(contentDiv);
+
+      // Attach event listener only to the "Show in Map" button
+      const mapButton = contentDiv.querySelector(".show-map-btn");
+      mapButton.addEventListener("click", function(event) {
+        event.stopPropagation(); // Prevent bubbling to <details> toggle
+        if (alert.location && alert.location.coordinates) {
+          const lat = parseFloat(alert.location.coordinates[1]);
+          const lng = parseFloat(alert.location.coordinates[0]);
+          if (typeof map !== 'undefined') {
+            map.setView([lat, lng], 13);
+          }
+          const mapElement = document.getElementById('map');
+          if (mapElement) {
+            mapElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+
+      // Append the details element to the alerts list container
+      alertsList.appendChild(details);
 
       hideForm();
     })
@@ -322,6 +377,8 @@ document.getElementById("alertForm").addEventListener("submit", function (e) {
       console.error("Error:", error);
       alert("Failed to submit the alert");
     });
+
+
 });
 
 
@@ -420,24 +477,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
   }
 
-  // Format hazard details for display
-  function formatHazardDetails(details) {
-    if (!details) return "No hazard details available.";
-    let detailsArray = [];
-    for (const key in details) {
-      if (details.hasOwnProperty(key)) {
-        if(key === "id") continue;
-        // Replace underscores with spaces and capitalize each word
-        let formattedKey = key.replace(/_/g, ' ')
-                              .split(' ')
-                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                              .join(' ');
-        let value = details[key] === null ? "Not Provided" : details[key];
-        detailsArray.push(`${formattedKey}: ${value}`);
-      }
-    }
-    return detailsArray.join('<br>');
-  }
+  // Made this function a global function so it can be used in the search input event listener
+  //----------------------------------------------------------------------->
+  // // Format hazard details for display
+  // function formatHazardDetails(details) {
+  //   if (!details) return "No hazard details available.";
+  //   let detailsArray = [];
+  //   for (const key in details) {
+  //     if (details.hasOwnProperty(key)) {
+  //       if(key === "id") continue;
+  //       // Replace underscores with spaces and capitalize each word
+  //       let formattedKey = key.replace(/_/g, ' ')
+  //                             .split(' ')
+  //                             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  //                             .join(' ');
+  //       let value = details[key] === null ? "Not Provided" : details[key];
+  //       detailsArray.push(`${formattedKey}: ${value}`);
+  //     }
+  //   }
+  //   return detailsArray.join('<br>');
+  // }
 
   // Update pagination button states and display text
   function updatePaginationControls(page, numPages) {
@@ -659,3 +718,22 @@ $(function() {
     cancel: "textarea, input, button, select, option"
   });
 });
+
+// Format hazard details for display
+function formatHazardDetails(details) {
+  if (!details) return "No hazard details available.";
+  let detailsArray = [];
+  for (const key in details) {
+    if (details.hasOwnProperty(key)) {
+      if(key === "id") continue;
+      // Replace underscores with spaces and capitalize each word
+      let formattedKey = key.replace(/_/g, ' ')
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+      let value = details[key] === null ? "Not Provided" : details[key];
+      detailsArray.push(`${formattedKey}: ${value}`);
+    }
+  }
+  return detailsArray.join('<br>');
+}
