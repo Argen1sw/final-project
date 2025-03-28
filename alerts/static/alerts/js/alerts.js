@@ -31,11 +31,6 @@ const hazardIcons = {
 // Initialize the map
 var map = L.map("map").setView([51.505, -0.09], 6);
 
-// L.tileLayer(
-//   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-//   {}
-// ).addTo(map);
-
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   maxZoom: 19
@@ -118,6 +113,14 @@ fetch("/geojson/")
       });
       circleLayer.addLayer(circle);
 
+      // Combine the marker and circle into a feature group
+      const alertGroup = L.featureGroup([marker, circle]);
+
+      if (layerGroups[hazard_type]) {
+        layerGroups[hazard_type].addLayer(alertGroup);
+      } else {
+        console.warn(`No layer group for hazard type: ${hazard_type}`);
+      }
     });
     
     // Create an object to hold the layer groups for the control
