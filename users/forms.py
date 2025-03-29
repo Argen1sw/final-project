@@ -140,8 +140,6 @@ class PasswordUpdateForm(forms.Form):
         https://docs.djangoproject.com/en/5.1/ref/forms/validation/
         """
         current_password = self.cleaned_data.get('current_password')
-        print(f" from current password {current_password}")
-        print(self.user.check_password(current_password))
         if not self.user.check_password(current_password):
             raise forms.ValidationError("The current password is incorrect.")
         return current_password
@@ -151,7 +149,6 @@ class PasswordUpdateForm(forms.Form):
         Method that validates the new password.
         """
         new_password = self.cleaned_data.get('new_password')
-        print(f" from New password {new_password}")
         if len(new_password) < 8:
             raise forms.ValidationError(
                 "New password must be at least 8 characters long.")
@@ -163,7 +160,6 @@ class PasswordUpdateForm(forms.Form):
         """
         repeat_new_password = self.cleaned_data.get('repeat_new_password')
         new_password = self.cleaned_data.get('new_password')
-        print(f" from repeat password {repeat_new_password}")
 
         if repeat_new_password != new_password:
             raise forms.ValidationError(
@@ -197,6 +193,7 @@ class EmailUpdateForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         # Query to extract all the users email
-        if User.objects.filter(email=email).exists():
+        qs = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError("This email is already in use.")
         return email

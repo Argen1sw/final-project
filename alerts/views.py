@@ -11,7 +11,7 @@ from rest_framework import status
 from django.contrib.gis.geos import Point
 from geopy.geocoders import Nominatim
 from django.views.generic import (
-    TemplateView, DetailView, DeleteView, UpdateView
+    TemplateView, DeleteView, UpdateView
 )
 from django.core.paginator import Paginator
 from rest_framework import generics
@@ -22,6 +22,7 @@ from django.forms.models import model_to_dict
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from django.urls import reverse
+from django.core.exceptions import PermissionDenied
 
 
 # Local Imports
@@ -147,7 +148,7 @@ class CreateAlertView(APIView):
         * Reverse geocodes the latitude and longitude.
         """
         data = request.data
-
+    
         # Validate input data
         lat = data.get('lat')
         lng = data.get('lng')
@@ -358,11 +359,13 @@ class AlertDetailsAndEditView(UpdateView):
         alert.hazard_type = alert.content_type.model if alert.content_type else None
         alert.hazard_details_dict = model_to_dict(
             alert.hazard_details) if alert.hazard_details else None
-        del alert.hazard_details_dict['id']
-
-        for key in alert.hazard_details_dict:
-            if alert.hazard_details_dict[key] is None:
-                alert.hazard_details_dict[key] = "N/A"
+        if alert.hazard_details_dict is not None:
+            del alert.hazard_details_dict['id']
+        
+        if alert.hazard_details_dict is not None:
+            for key in alert.hazard_details_dict:
+                if alert.hazard_details_dict[key] is None:
+                    alert.hazard_details_dict[key] = "N/A"
 
         # Insert the user's vote status
         if self.request.user.is_authenticated:
@@ -415,7 +418,7 @@ class AlertDeleteView(LoginRequiredMixin, DeleteView):
 
         # If the user does not have permission, return Forbidden response
         if not self.user_can_delete(alert):
-            return HttpResponseForbidden("You do not have permission to delete this alert.")
+            raise PermissionDenied("You do not have permission to delete this alert.")
 
         return alert
 
@@ -529,7 +532,8 @@ class ArchiveAlertView(LoginRequiredMixin, UpdateView):
 
         # If the user does not have permission, return Forbidden response
         if not self.user_can_archive(alert):
-            return HttpResponseForbidden("You do not have permission to archive this alert.")
+            # return HttpResponseForbidden("You do not have permission to archive this alert.")
+            raise PermissionDenied("You do not have permission to delete this alert.")
 
         # Set the alert to inactive
         alert.is_active = False

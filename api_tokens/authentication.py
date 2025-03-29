@@ -30,5 +30,4 @@ class CustomTokenAuthentication(authentication.BaseAuthentication):
 
         if token.expires_at < timezone.now():
             raise exceptions.AuthenticationFailed("Token has expired.")
-
         return (token.user, token)

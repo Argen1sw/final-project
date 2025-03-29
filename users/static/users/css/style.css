@@ -1,0 +1,9 @@
+.errorlist {
+    color: #e3342f;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    list-style: none;
+}
+.errorlist li {
+    padding: 0.2rem 0;
+}

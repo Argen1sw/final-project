@@ -4,8 +4,9 @@
 {% block title %}EnviroAlerts | Profile{% endblock %}
 
 {% block map_features %}
-  {# If needed, you can include any extra CSS or scripts here #}
+  <link rel="stylesheet" href="{% static 'users/css/style.css' %}">
 {% endblock %}
+
 
 {% block content %}
   <div class="min-h-screen flex flex-col items-center justify-center bg-gray-900 px-4 py-4">
@@ -70,5 +71,13 @@
     </div>
   </div>
 
-<script src="{% static 'users/js/user_profile.js' %}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      {% if update_information.errors or update_password.errors or update_email.errors %}
+        showProfileForm();
+      {% endif %}
+    });
+  </script>
+
+  <script src="{% static 'users/js/user_profile.js' %}"></script>
 {% endblock %}

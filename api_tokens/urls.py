@@ -67,7 +67,7 @@ any other admin or ambassador.
 # Define only the API endpoints you want to document.
 api_urlpatterns = [
     path('api/list_alerts/', ListAlertsAPIView.as_view(), name='list_alerts'),
-    path('api/create_alert/', CreateAlertAPIView.as_view(), name='create_alert'),
+    path('api/create_alert/', CreateAlertAPIView.as_view(), name='create_alert_api'),
 ]
 
 schema_view = get_schema_view(
@@ -82,7 +82,6 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-
     path('device_manager/', ListTokensView.as_view(), name='device_manager'),
     path('token_revoke/<int:token_id>/',
          RevokeTokenView.as_view(), name='token_revoke'),
@@ -99,5 +98,5 @@ urlpatterns = [
         name='schema-redoc'
     ),
     path('api/list_alerts/', ListAlertsAPIView.as_view(), name='list_alerts'),
-    path('api/create_alert/', CreateAlertAPIView.as_view(), name='create_alert'),
+    path('api/create_alert/', CreateAlertAPIView.as_view(), name='create_alert_api'),
 ]

@@ -18,11 +18,27 @@ from rest_framework import status
 from django.http import HttpResponseForbidden
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission
 
 # Local Imports
 from .forms import (RegisterForm, LoginForm,
                     UserProfileForm, PasswordUpdateForm, EmailUpdateForm)
 from .models import User
+
+
+class IsAdminOrAmbassador(BasePermission):
+    """
+    Allows access only to admin or ambassador users.
+    
+    * Admin users can manage all users.
+    * Ambassador users can only manage normal users.
+    * This permission class is used for API views.
+    """
+    
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and (
+            request.user.is_admin() or request.user.is_ambassador()
+        )
 
 
 class UserRegisterView(CreateView):
@@ -118,18 +134,8 @@ class ManageUsersPaginatedView(APIView):
     * This view returns a JSON response for pagination purposes.
     """
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
-            
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Check if the user is an admin or ambassador.
-        """
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    permission_classes = [IsAuthenticated, IsAdminOrAmbassador]
 
-        if not request.user.is_admin() and not request.user.is_ambassador():
-            return redirect("home")
-        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         """
@@ -244,22 +250,16 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Adding all three forms to the context for rendering
-        context['update_information'] = self.form_class(instance=self.object)
-        context['update_password'] = self.second_form_class()
-        context['update_email'] = self.third_form_class(instance=self.object)
-
+        # Use the provided form if present; otherwise, initialize fresh forms.
+        context['update_information'] = kwargs.get('update_information', self.form_class(instance=self.object))
+        context['update_password'] = kwargs.get('update_password', self.second_form_class())
+        context['update_email'] = kwargs.get('update_email', self.third_form_class(instance=self.object))
         return context
 
     def get_object(self):
         return self.request.user
-
+    
     def post(self, request, *args, **kwargs):
-        """
-        Handles POST requests and processes the appropriate form based 
-        on which submit button was clicked.
-        """
         self.object = self.get_object()
 
         if 'update_information' in request.POST:
@@ -278,7 +278,9 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         if form.is_valid():
             return self.form_valid(form)
         else:
-            return self.render_to_response(self.get_context_data(form=form))
+            # Pass the invalid form under the corresponding key so it’s used in context.
+            context_key = form_name 
+        return self.render_to_response(self.get_context_data(**{context_key: form}))
 
     def form_valid(self, form):
         """
@@ -300,3 +302,5 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         Called when a form is invalid. Re-render the template with error messages.
         """
         return self.render_to_response(self.get_context_data(form=form))
+
+
